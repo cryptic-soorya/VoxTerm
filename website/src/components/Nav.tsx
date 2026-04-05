@@ -24,7 +24,7 @@ export default function Nav() {
         className="text-[15px] font-bold tracking-tight"
         whileHover={{ opacity: 0.8 }}
       >
-        voc<span className="text-accent-mid">term</span>
+        Vox<span className="text-accent-mid">Term</span>
       </motion.a>
 
       <div className="flex items-center gap-6">

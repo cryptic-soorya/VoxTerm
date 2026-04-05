@@ -8,7 +8,7 @@ const FEATURES = [
   { icon: '🛡️', title: 'Three-tier safety gate', desc: 'Low runs instantly. Medium asks Y/n. High requires typing "yes" in full. Hardcoded rules the LLM can never override.' },
   { icon: '↩️', title: 'One-word undo',          desc: 'Say "undo that." The inverse command is computed before anything runs, so reversing is always one confirmation away.' },
   { icon: '📚', title: 'Command history',        desc: 'Every run is logged locally to SQLite with its risk level and output. Yours to keep, searchable, never uploaded.' },
-  { icon: '🔌', title: 'Plugins + aliases',      desc: 'Drop a .py file into plugins/ for zero-latency shortcuts. Aliases let you save any command — vocterm learns your patterns.' },
+  { icon: '🔌', title: 'Plugins + aliases',      desc: 'Drop a .py file into plugins/ for zero-latency shortcuts. Aliases let you save any command — VoxTerm learns your patterns.' },
 ]
 
 function FeatureCard({ icon, title, desc, delay }: { icon: string; title: string; desc: string; delay: number }) {

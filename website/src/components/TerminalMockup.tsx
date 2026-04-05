@@ -9,21 +9,21 @@ const DEMOS = [
     cmd: 'ls -la ~/Downloads',
     expl: 'list files in Downloads',
     risk: 'low' as const,
-    output: ['total 284', 'drwx------  12 soorya  staff   384', '-rw-r--r--   1 soorya  staff  2.1M  design-v3.fig', '-rw-r--r--   1 soorya  staff   840  notes.md', '-rw-r--r--   1 soorya  staff  14M   vocterm.dmg'],
+    output: ['total 284', 'drwx------  12 soorya  staff   384', '-rw-r--r--   1 soorya  staff  2.1M  design-v3.fig', '-rw-r--r--   1 soorya  staff   840  notes.md', '-rw-r--r--   1 soorya  staff  14M   voxterm.dmg'],
   },
   {
     said: 'push my changes to github',
     cmd: 'git push origin main',
     expl: 'push commits to remote',
     risk: 'medium' as const,
-    output: ['Enumerating objects: 5, done.', 'Writing objects: 100% (3/3)', 'To github.com:soorya/vocterm.git', '   a3f1c2b..d4e9f01  main → main'],
+    output: ['Enumerating objects: 5, done.', 'Writing objects: 100% (3/3)', 'To github.com:soorya/voxterm.git', '   a3f1c2b..d4e9f01  main → main'],
   },
   {
     said: 'find large files over 100MB',
     cmd: 'find . -size +100M -type f',
     expl: 'find files larger than 100MB',
     risk: 'low' as const,
-    output: ['./node_modules/.cache/bundle.js', './dist/vocterm-bundle.js', './assets/demo-recording.mov'],
+    output: ['./node_modules/.cache/bundle.js', './dist/voxterm-bundle.js', './assets/demo-recording.mov'],
   },
 ]
 
@@ -84,7 +84,7 @@ export default function TerminalMockup() {
           <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
           <div className="w-3 h-3 rounded-full bg-[#febc2e]" />
           <div className="w-3 h-3 rounded-full bg-[#28c840]" />
-          <span className="flex-1 text-center text-[11px] text-muted font-medium mr-8">vocterm — zsh</span>
+          <span className="flex-1 text-center text-[11px] text-muted font-medium mr-8">voxterm — zsh</span>
         </div>
 
         {/* Body */}

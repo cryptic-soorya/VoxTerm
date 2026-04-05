@@ -39,7 +39,7 @@ export default function Safety() {
           </motion.h2>
           <motion.p variants={fadeUp} className="text-[17px] text-muted max-w-[500px] mx-auto">
             The LLM's risk assessment is a suggestion. Hardcoded rules are law.
-            No prompt engineering can make vocterm silently delete your files.
+            No prompt engineering can make VoxTerm silently delete your files.
           </motion.p>
         </motion.div>
 

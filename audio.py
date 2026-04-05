@@ -60,7 +60,7 @@ def record_until_silence(status_callback=None) -> str:
         else:
             print(msg, flush=True)
 
-    vad = webrtcvad.Vad(2)  # aggressiveness 0–3; 2 = balanced (1 is more permissive)
+    vad = webrtcvad.Vad(3)  # aggressiveness 0–3; 3 = most aggressive (classifies more as silence)
 
     pa = pyaudio.PyAudio()
     try:

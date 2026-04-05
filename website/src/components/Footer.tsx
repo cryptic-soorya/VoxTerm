@@ -16,7 +16,7 @@ export default function Footer() {
           className="text-[14px] font-bold"
           whileHover={{ opacity: 0.7 }}
         >
-          voc<span className="text-accent-mid">term</span>
+          Vox<span className="text-accent-mid">Term</span>
           <span className="text-muted font-normal ml-2">by soorya</span>
         </motion.div>
 

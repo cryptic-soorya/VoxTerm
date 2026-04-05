@@ -15,7 +15,7 @@ const TABS = [
       { type: 'blank' },
       { type: 'comment', text: '# 2. Clone and install' },
       { type: 'cmd',     text: 'git clone https://github.com/yourusername/vocterm' },
-      { type: 'cmd',     text: 'cd vocterm && brew install portaudio' },
+      { type: 'cmd',     text: 'cd voxterm && brew install portaudio' },
       { type: 'cmd',     text: 'python3 -m venv venv && source venv/bin/activate' },
       { type: 'cmd',     text: 'pip install -r requirements.txt' },
       { type: 'blank' },
@@ -35,7 +35,7 @@ const TABS = [
       { type: 'blank' },
       { type: 'comment', text: '# 2. Clone and install' },
       { type: 'cmd',     text: 'git clone https://github.com/yourusername/vocterm' },
-      { type: 'cmd',     text: 'cd vocterm && brew install portaudio' },
+      { type: 'cmd',     text: 'cd voxterm && brew install portaudio' },
       { type: 'cmd',     text: 'python3 -m venv venv && source venv/bin/activate' },
       { type: 'cmd',     text: 'pip install -r requirements.txt' },
       { type: 'blank' },
@@ -44,7 +44,7 @@ const TABS = [
       { type: 'comment', text: '# edit .env → GEMINI_API_KEY=your_key' },
       { type: 'cmd',     text: 'python main.py' },
     ],
-    footer: 'vocterm auto-detects the key. Switch between Ollama and Gemini any time.',
+    footer: 'VoxTerm auto-detects the key. Switch between Ollama and Gemini any time.',
   },
 ]
 
@@ -91,7 +91,7 @@ export default function Download() {
               Open source · MIT licence
             </motion.div>
 
-            <h3 className="text-[32px] font-black tracking-[-1.5px] mb-3">vocterm for Mac</h3>
+            <h3 className="text-[32px] font-black tracking-[-1.5px] mb-3">VoxTerm for Mac</h3>
             <p className="text-[14px] text-muted mb-7">macOS 12+ · Apple Silicon &amp; Intel · Python 3.11+</p>
 
             <motion.a
@@ -102,7 +102,7 @@ export default function Download() {
               transition={{ type: 'spring', stiffness: 400, damping: 22 }}
             >
               <DownloadIcon size={16} />
-              Download vocterm
+              Download VoxTerm
             </motion.a>
             <p className="text-[12px] text-muted">v1.0.0 · Requires Ollama or free Gemini key</p>
           </div>

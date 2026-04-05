@@ -33,17 +33,17 @@ There is no Anthropic/OpenAI API key anywhere in this project. If you see one, r
 
 ## Project status
 
-- [x] Phase 1: audio capture + transcription (audio.py + transcribe.py)
-- [x] Phase 2: LLM translation + JSON parsing (translate.py)
-- [x] Phase 3: safety gate + confirmation UI (safety.py)
-- [x] Phase 4: execution + output capture (executor.py)
-- [x] Phase 5: history logging (history.py)
-- [x] Phase 6: undo stack (undo.py)
-- [x] Phase 7: Rich terminal UI polish (ui.py)
-- [x] Phase 8: alias learning system (aliases.py)
-- [x] Phase 9: plugin system (plugins/)
-- [x] Phase 10: CLI flags via Click (main.py)
-- [x] Phase 11: README + demo GIF + GitHub release
+- [ ] Phase 1: audio capture + transcription (audio.py + transcribe.py)
+- [ ] Phase 2: LLM translation + JSON parsing (translate.py)
+- [ ] Phase 3: safety gate + confirmation UI (safety.py)
+- [ ] Phase 4: execution + output capture (executor.py)
+- [ ] Phase 5: history logging (history.py)
+- [ ] Phase 6: undo stack (undo.py)
+- [ ] Phase 7: Rich terminal UI polish (ui.py)
+- [ ] Phase 8: alias learning system (aliases.py)
+- [ ] Phase 9: plugin system (plugins/)
+- [ ] Phase 10: CLI flags via Click (main.py)
+- [ ] Phase 11: README + demo GIF + GitHub release
 
 Update this checklist as phases are completed.
 
@@ -287,7 +287,7 @@ python main.py --cloud       # force Gemini
 
 ```
 GEMINI_API_KEY=your_free_key_from_aistudio.google.com
-OLLAMA_MODEL=llama3.2:3b      # or qwen3.5:9b, llama3, etc.
+OLLAMA_MODEL=mistral          # or llama3, phi3, gemma2 etc.
 WHISPER_MODEL=base            # tiny | base | small | medium
 VOCTERM_CONFIRM_TIMEOUT=30    # seconds before medium-risk auto-cancels
 ```
@@ -307,8 +307,9 @@ GEMINI_API_KEY is optional — only needed if you want the cloud fallback when O
 | `build.sh` | one-command script: PyInstaller → create-dmg → ready to upload |
 | `assets/icon.icns` | app icon in macOS format |
 | `assets/dmg-background.png` | background image shown in the DMG installer window |
-| `docs/index.html` | landing page, hosted free on GitHub Pages |
-| `docs/demo.gif` | demo GIF embedded in the landing page |
+| `website/` | React landing page (Vite + Tailwind + Framer Motion) — replaces the static `docs/index.html` approach |
+| `assets/icon.icns` | app icon in macOS format |
+| `assets/dmg-background.png` | background image shown in the DMG installer window |
 
 **New dependencies:**
 ```
@@ -333,8 +334,8 @@ build.sh
   → PyInstaller bundles Python + deps → dist/vocterm.app
   → create-dmg wraps .app → dist/vocterm-1.0.0.dmg
   → upload DMG to GitHub Releases
-  → landing page (docs/) links to GitHub Releases download URL
-  → GitHub Pages serves docs/ at yourusername.github.io/vocterm
+  → landing page (website/) links to GitHub Releases download URL
+  → build website with `cd website && npm run build` → deploy dist/ to GitHub Pages or Vercel
 ```
 
 **Security warning note:**
@@ -348,4 +349,73 @@ Non-technical users won't have Ollama installed. In app_gui.py, flip the
 default: try Gemini first (if key exists), fall back to Ollama. The
 Preferences menu item lets users paste their free Gemini key into a native
 dialog — no Terminal, no .env file editing.
+
+
+---
+
+## Phase 13 — Intelligence upgrades summary
+
+Eight targeted improvements that fix real failure modes. All are additions to existing files — no new modules needed except `pynput` for hotkeys.
+
+### Features added
+
+| Feature | File(s) changed | What it fixes |
+|---------|----------------|---------------|
+| History injection (RAG) | `translate.py`, `history.py` | LLM is stateless — can't handle "do that again" or "same but for X" |
+| Clarification follow-ups | `translate.py`, `safety.py`, `main.py`, `prompts/system.txt` | Ambiguous requests fail hard instead of asking one question |
+| Filesystem awareness | `context.py` | LLM doesn't know what files/folders actually exist in cwd |
+| Smart Whisper prompt | `transcribe.py` | Technical vocabulary (git, npm, chmod) gets misheard |
+| Global hotkey | `app_gui.py` | User must click menu bar icon — kills the flow |
+| Explanation mode | `translate.py`, `main.py` | Tool teaches nothing — just runs commands silently |
+| Output summarisation | `executor.py`, `translate.py`, `ui.py` | Long output (find, ps, git log) is dumped raw, unreadable |
+| Error recovery | `executor.py`, `translate.py`, `main.py` | Failed commands leave user with a cryptic error, no help |
+
+### New JSON schema field
+
+`clarification` added to the LLM response schema:
+```json
+{
+  "command": null,
+  "clarification": "Which folder should I look in?",
+  "risk": "low",
+  "explanation": "",
+  "destructive": false,
+  "inverse_command": null,
+  "steps": null
+}
+```
+When `clarification` is non-null, the app speaks the question, listens for an answer, combines original + answer into a new transcript, and re-runs the pipeline. No starting over.
+
+### How history injection works (RAG pattern)
+
+Every LLM call now includes the last 7 commands from SQLite, formatted as text, prepended to the user message. The model can reason about references ("that", "the same", "before") because it has the actual history in its context window. This is the same pattern used by Cursor, ChatGPT memory, and every "AI that knows about you" product.
+
+### Key constants to know
+
+```python
+# transcribe.py
+DEVELOPER_VOCAB_PROMPT = "git commit push pull..."  # biases Whisper toward dev vocab
+
+# executor.py  
+SUMMARISE_THRESHOLD_LINES = 10  # output longer than this gets summarised
+
+# translate.py
+EXPLAIN_TRIGGERS = ["explain that", "what did that do", ...]  # triggers explanation mode
+```
+
+### New dependency
+
+```
+pynput==1.7.7    # global hotkey — add to requirements.txt
+```
+
+### macOS `say` command
+
+Used for speaking clarification questions and explanations back to the user.
+Built into macOS — no installation needed, completely free.
+```python
+import subprocess
+subprocess.run(["say", "Which folder did you mean?"])
+```
+This is optional — wrap in a user preference to enable/disable voice output.
 
