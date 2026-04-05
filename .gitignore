@@ -1,0 +1,10 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.env
+data/
+*.wav
+.DS_Store
+website/node_modules/
+website/dist/

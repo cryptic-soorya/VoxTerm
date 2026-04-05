@@ -1,0 +1,18 @@
+# Audio capture
+pyaudio==0.2.14
+# webrtcvad has a pkg_resources issue on Python 3.12+ — use the wheels fork
+webrtcvad-wheels==2.0.14
+
+# Transcription
+faster-whisper==1.2.1
+
+# LLM backends
+requests==2.33.1
+google-generativeai==0.8.6
+
+# Config
+python-dotenv==1.2.2
+
+# UI + CLI
+rich==14.3.3
+click==8.3.1
