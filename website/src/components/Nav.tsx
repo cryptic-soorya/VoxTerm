@@ -41,7 +41,7 @@ export default function Nav() {
         ))}
 
         <motion.a
-          href="https://github.com/yourusername/vocterm"
+          href="https://github.com/yourusername/voxterm"
           target="_blank"
           className="text-muted hidden md:flex items-center"
           whileHover={{ color: '#f0f0f8', scale: 1.1 }}

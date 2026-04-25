@@ -1,5 +1,5 @@
 """
-Example plugin for vocterm.
+Example plugin for voxterm.
 
 Plugins are checked before calling any LLM — zero latency, zero API usage.
 Copy this file, rename it, and edit TRIGGER + run() to create your own.
@@ -20,7 +20,7 @@ def run(context: dict) -> str:
                  Use context["cwd"] to make paths precise.
 
     Returns:
-        A shell command string. vocterm will run this through the normal
+        A shell command string. VoxTerm will run this through the normal
         safety gate (medium risk by default for plugin commands).
     """
     return "npm run build && netlify deploy --prod"

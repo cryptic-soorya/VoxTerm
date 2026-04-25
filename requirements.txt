@@ -8,7 +8,7 @@ faster-whisper==1.2.1
 
 # LLM backends
 requests==2.33.1
-google-generativeai==0.8.6
+google-genai>=1.0.0
 
 # Config
 python-dotenv==1.2.2
@@ -16,3 +16,7 @@ python-dotenv==1.2.2
 # UI + CLI
 rich==14.3.3
 click==8.3.1
+
+# GUI (menu bar app + global hotkey)
+rumps==0.4.0
+pynput==1.7.7

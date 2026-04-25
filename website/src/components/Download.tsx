@@ -14,7 +14,7 @@ const TABS = [
       { type: 'cmd',     text: 'ollama pull llama3.2:3b' },
       { type: 'blank' },
       { type: 'comment', text: '# 2. Clone and install' },
-      { type: 'cmd',     text: 'git clone https://github.com/yourusername/vocterm' },
+      { type: 'cmd',     text: 'git clone https://github.com/yourusername/voxterm' },
       { type: 'cmd',     text: 'cd voxterm && brew install portaudio' },
       { type: 'cmd',     text: 'python3 -m venv venv && source venv/bin/activate' },
       { type: 'cmd',     text: 'pip install -r requirements.txt' },
@@ -34,7 +34,7 @@ const TABS = [
       { type: 'comment', text: '# 1. Get a free key at aistudio.google.com' },
       { type: 'blank' },
       { type: 'comment', text: '# 2. Clone and install' },
-      { type: 'cmd',     text: 'git clone https://github.com/yourusername/vocterm' },
+      { type: 'cmd',     text: 'git clone https://github.com/yourusername/voxterm' },
       { type: 'cmd',     text: 'cd voxterm && brew install portaudio' },
       { type: 'cmd',     text: 'python3 -m venv venv && source venv/bin/activate' },
       { type: 'cmd',     text: 'pip install -r requirements.txt' },
@@ -95,7 +95,7 @@ export default function Download() {
             <p className="text-[14px] text-muted mb-7">macOS 12+ · Apple Silicon &amp; Intel · Python 3.11+</p>
 
             <motion.a
-              href="https://github.com/yourusername/vocterm/releases/latest"
+              href="https://github.com/yourusername/voxterm/releases/latest"
               className="inline-flex items-center gap-2.5 px-8 py-3.5 bg-accent text-white text-[15px] font-bold rounded-xl mb-3"
               whileHover={{ scale: 1.04, backgroundColor: '#9d5cff', boxShadow: '0 12px 48px rgba(124,58,237,0.45)' }}
               whileTap={{ scale: 0.97 }}

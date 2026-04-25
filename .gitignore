@@ -9,5 +9,11 @@ data/
 website/node_modules/
 website/dist/
 
+# Build outputs
+assets/icon_source.png
+dist/
+build/
+*.spec.bak
+
 CLAUDE.md
 PLAN.md

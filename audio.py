@@ -26,8 +26,8 @@ SAMPLE_RATE = 16_000          # Hz — Whisper was trained on 16kHz
 FRAME_DURATION_MS = 30        # ms per VAD frame (10, 20, or 30 are valid)
 CHUNK = int(SAMPLE_RATE * FRAME_DURATION_MS / 1000)  # 480 samples per frame
 
-SILENCE_THRESHOLD_SECONDS = 1.5
-SILENCE_FRAMES_NEEDED = int(SILENCE_THRESHOLD_SECONDS * 1000 / FRAME_DURATION_MS)  # 50
+SILENCE_THRESHOLD_SECONDS = 0.8  # reduced from 1.5s — shorter gap before cutoff
+SILENCE_FRAMES_NEEDED = int(SILENCE_THRESHOLD_SECONDS * 1000 / FRAME_DURATION_MS)  # ~27
 
 # Ring buffer to keep ~0.5s of audio before speech starts, so we don't
 # clip the beginning of what you said.

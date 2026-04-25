@@ -67,6 +67,21 @@ def recent(n: int = 20) -> list[tuple]:
         ).fetchall()
 
 
+def recent_full(n: int = 20) -> list[tuple]:
+    """
+    Same as recent() but includes the output column.
+
+    Each tuple: (timestamp, transcript, command, risk, success, output)
+    """
+    init()
+    with sqlite3.connect(DB_PATH) as conn:
+        return conn.execute(
+            """SELECT timestamp, transcript, command, risk, success, output
+               FROM history ORDER BY id DESC LIMIT ?""",
+            (n,),
+        ).fetchall()
+
+
 def clear():
     """Delete all history entries. Used in tests and by the user if desired."""
     init()

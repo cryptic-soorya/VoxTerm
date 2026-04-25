@@ -1,0 +1,7 @@
+# Plugin allowlist — one filename per line (no paths, just the .py filename).
+# Only plugins listed here will be loaded by VoxTerm.
+# Add your plugin filename below to enable it.
+# Lines starting with # are comments.
+#
+# example.py is always skipped (it's a template, not a real plugin).
+# Add your plugins below:

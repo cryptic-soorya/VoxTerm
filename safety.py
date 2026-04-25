@@ -29,8 +29,11 @@ _FORCE_HIGH: list[str] = [
     "rm ",
     "rm\t",
     "sudo ",
+    "sudo\t",    # tab after sudo also spawns a privileged shell
     "chmod ",
+    "chmod\t",
     "chown ",
+    "chown\t",
     " -rf",
     "-rf ",
     " -r ",
@@ -39,6 +42,18 @@ _FORCE_HIGH: list[str] = [
     "> /",       # redirect writes to system paths
     "mkfs",      # format a filesystem
     ":(){:|:&}", # fork bomb pattern
+    # Command substitution — bypasses substring checks on the outer command
+    "$(",        # $(rm -rf ...)
+    "`",         # `rm -rf ...`
+    # Pipe-to-shell patterns — eval-equivalent, high injection risk
+    "| bash",
+    "|bash",
+    "| sh",
+    "|sh",
+    "| zsh",
+    "|zsh",
+    "| python",
+    "|python",
 ]
 
 # Patterns that touch the home directory root (e.g. rm ~/file but not rm ~/projects/foo)
@@ -48,12 +63,24 @@ _HOME = os.path.expanduser("~")
 
 def _touches_home_root(cmd: str) -> bool:
     """
-    True if the command targets a file directly in ~/ (not a subdirectory).
-    e.g. `rm ~/important.txt` → True, `rm ~/projects/foo` → False
+    True if the command WRITES to a file directly in ~/ (not a subdirectory).
+    Read-only access (cd, ls, cat) is intentionally NOT flagged — only
+    operations that could overwrite or create a top-level home file:
+        mv X ~/foo, cp X ~/foo, touch ~/foo, tee ~/foo
+        > ~/foo, >> ~/foo  (redirects)
+    Subdirectories (~/projects/...) are never flagged here; the LLM-suggested
+    risk and the rm/sudo/chmod patterns handle those.
     """
-    # Match ~ or $HOME followed by / and a filename (no second /)
-    pattern = rf'(?:~|{re.escape(_HOME)})/[^/\s]+'
-    return bool(re.search(pattern, cmd))
+    # Token boundary so `~/projects/foo` (continues with /) does not match.
+    home_root_path = rf'(?:~|{re.escape(_HOME)})/[^/\s]+(?=\s|$|[\'";|&])'
+    if not re.search(home_root_path, cmd):
+        return False
+    # Redirect into home root — > ~/foo or >> ~/foo
+    redirect_pattern = rf'>{{1,2}}\s*(?:~|{re.escape(_HOME)})/[^/\s]+'
+    if re.search(redirect_pattern, cmd):
+        return True
+    # Write/move/copy commands targeting home root.
+    return bool(re.search(r'(^|[\s|;&])(mv|cp|touch|tee)\s', cmd))
 
 
 def final_risk(result: dict) -> str:
@@ -194,6 +221,12 @@ if __name__ == "__main__":
         (f"rm ~/projects/foo/bar.txt (subdir of home → stays LOW)",
          {"command": "rm ~/projects/foo/bar.txt", "risk": "low", "explanation": "rm subdir"},
          "high"),  # still forced HIGH because rm is in _FORCE_HIGH
+        (f"cd ~/projects (subdir of home → stays LOW)",
+         {"command": "cd ~/projects", "risk": "low", "explanation": "cd subdir"},
+         "low"),
+        (f"ls ~/Downloads (subdir of home → stays LOW)",
+         {"command": "ls ~/Downloads", "risk": "low", "explanation": "ls subdir"},
+         "low"),
     ]
 
     all_pass = True

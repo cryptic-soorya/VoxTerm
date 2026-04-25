@@ -2,10 +2,10 @@ import { motion } from 'framer-motion'
 import { Github } from 'lucide-react'
 
 const LINKS = [
-  { label: 'GitHub',    href: 'https://github.com/yourusername/vocterm' },
-  { label: 'Releases',  href: 'https://github.com/yourusername/vocterm/releases' },
-  { label: 'Issues',    href: 'https://github.com/yourusername/vocterm/issues' },
-  { label: 'MIT Licence', href: 'https://github.com/yourusername/vocterm/blob/main/LICENSE' },
+  { label: 'GitHub',    href: 'https://github.com/yourusername/voxterm' },
+  { label: 'Releases',  href: 'https://github.com/yourusername/voxterm/releases' },
+  { label: 'Issues',    href: 'https://github.com/yourusername/voxterm/issues' },
+  { label: 'MIT Licence', href: 'https://github.com/yourusername/voxterm/blob/main/LICENSE' },
 ]
 
 export default function Footer() {

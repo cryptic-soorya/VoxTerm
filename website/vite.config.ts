@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/vocterm/',
+  base: '/voxterm/',
   build: {
     outDir: '../docs',
     emptyOutDir: true,

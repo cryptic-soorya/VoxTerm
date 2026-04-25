@@ -1,4 +1,4 @@
-# CLAUDE.md — vocterm
+# CLAUDE.md — VoxTerm
 
 This file tells Claude everything about this project so we can pick up exactly where we left off in any session.
 
@@ -6,7 +6,7 @@ This file tells Claude everything about this project so we can pick up exactly w
 
 ## What this project is
 
-**vocterm** is a voice-controlled terminal assistant for macOS (Apple Silicon). The user speaks plain English, the tool transcribes it locally using Whisper, translates it into a shell command using an LLM, assesses the risk level, and asks for confirmation before running anything destructive. Everything runs on-device by default. No paid APIs. No subscriptions.
+**VoxTerm** is a voice-controlled terminal assistant for macOS (Apple Silicon). The user speaks plain English, the tool transcribes it locally using Whisper, translates it into a shell command using an LLM, assesses the risk level, and asks for confirmation before running anything destructive. Everything runs on-device by default. No paid APIs. No subscriptions.
 
 **One-liner for explaining it:** "It's like GitHub Copilot for your terminal, but voice-first and completely free."
 
@@ -52,7 +52,7 @@ Update this checklist as phases are completed.
 ## Folder structure
 
 ```
-vocterm/
+voxterm/
 ├── main.py              ← entry point, wires everything together, Click CLI
 ├── audio.py             ← mic recording + WebRTCVAD silence detection
 ├── transcribe.py        ← faster-whisper model wrapper (local inference)
@@ -180,10 +180,10 @@ TIME: 2026-04-03 14:32
 ## Undo system
 
 - After every reversible command runs, `inverse_command` from the JSON is pushed to an in-memory undo stack
-- User can say "undo that" or run `vocterm undo`
+- User can say "undo that" or run `voxterm undo`
 - Undo commands are always treated as MEDIUM risk (shown, confirmed before running)
 - Non-reversible commands (rm etc.) push null — undo is disabled for those
-- Undo stack is in-memory only — resets when vocterm exits (intentional, safer this way)
+- Undo stack is in-memory only — resets when voxterm exits (intentional, safer this way)
 
 ---
 
@@ -192,7 +192,7 @@ TIME: 2026-04-03 14:32
 - aliases.json stores named shortcuts: `{"clean": "rm -rf node_modules && npm install"}`
 - If the LLM detects a transcript matches a saved alias, it uses the stored command directly
 - If the same intent appears 3+ times in history, the tool offers to save it as an alias
-- User can also manually save: `vocterm alias save <name>`
+- User can also manually save: `voxterm alias save <name>`
 
 ---
 
@@ -214,14 +214,14 @@ Plugins are checked before calling any LLM — zero latency, zero API usage.
 ## CLI flags
 
 ```
-vocterm              ← default: listen, auto-select Ollama or Gemini
-vocterm --dry-run    ← full pipeline, no execution
-vocterm --offline    ← force Ollama, error if not running
-vocterm --cloud      ← force Gemini, error if no GEMINI_API_KEY
-vocterm --history    ← show last 20 commands
-vocterm undo         ← run the inverse of the last command
-vocterm alias list   ← show saved aliases
-vocterm alias save <name>  ← save last command as alias
+voxterm              ← default: listen, auto-select Ollama or Gemini
+voxterm --dry-run    ← full pipeline, no execution
+voxterm --offline    ← force Ollama, error if not running
+voxterm --cloud      ← force Gemini, error if no GEMINI_API_KEY
+voxterm --history    ← show last 20 commands
+voxterm undo         ← run the inverse of the last command
+voxterm alias list   ← show saved aliases
+voxterm alias save <name>  ← save last command as alias
 ```
 
 ---
@@ -262,7 +262,7 @@ So you can tweak LLM behaviour without touching Python code. Changing how risk i
 ## How to run (once built)
 
 ```bash
-cd vocterm
+cd voxterm
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
@@ -303,7 +303,7 @@ GEMINI_API_KEY is optional — only needed if you want the cloud fallback when O
 | File | Purpose |
 |------|---------|
 | `app_gui.py` | rumps menu bar app — GUI entry point for the distributable app |
-| `vocterm.spec` | PyInstaller config — tells it how to bundle the app |
+| `voxterm.spec` | PyInstaller config — tells it how to bundle the app |
 | `build.sh` | one-command script: PyInstaller → create-dmg → ready to upload |
 | `assets/icon.icns` | app icon in macOS format |
 | `assets/dmg-background.png` | background image shown in the DMG installer window |
@@ -323,7 +323,7 @@ create-dmg is installed via Homebrew, not pip.
 - `python app_gui.py` — GUI mode (menu bar app), used by PyInstaller
 Both use the same backend. app_gui.py is just a different shell on top.
 
-**Key Info.plist keys in vocterm.spec:**
+**Key Info.plist keys in voxterm.spec:**
 - `LSUIElement: True` — makes it a menu bar app, no Dock icon
 - `NSMicrophoneUsageDescription` — required for mic permission on macOS
 - `CFBundleShortVersionString` — version number shown in Finder
@@ -331,8 +331,8 @@ Both use the same backend. app_gui.py is just a different shell on top.
 **Distribution flow:**
 ```
 build.sh
-  → PyInstaller bundles Python + deps → dist/vocterm.app
-  → create-dmg wraps .app → dist/vocterm-1.0.0.dmg
+  → PyInstaller bundles Python + deps → dist/voxterm.app
+  → create-dmg wraps .app → dist/voxterm-1.0.0.dmg
   → upload DMG to GitHub Releases
   → landing page (website/) links to GitHub Releases download URL
   → build website with `cd website && npm run build` → deploy dist/ to GitHub Pages or Vercel

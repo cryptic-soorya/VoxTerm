@@ -164,6 +164,18 @@ def thinking():
         yield
 
 
+@contextmanager
+def summarising():
+    """Show a spinner while the LLM summarises long output (13G)."""
+    with Live(
+        _SpinnerRenderable("summarising", _DIM),
+        refresh_per_second=12,
+        transient=True,
+        console=console,
+    ):
+        yield
+
+
 # ---------------------------------------------------------------------------
 # One-shot display functions
 # ---------------------------------------------------------------------------
@@ -171,7 +183,7 @@ def thinking():
 def show_banner():
     """App header — printed once at startup."""
     console.print()
-    console.print(Rule(Text("  vocterm  ", style=f"bold {_ACCENT}"), style=_DIM))
+    console.print(Rule(Text("  VoxTerm  ", style=f"bold {_ACCENT}"), style=_DIM))
     console.print()
 
 
@@ -190,11 +202,17 @@ def show_transcript(text: str):
     console.print()
 
 
-def show_output(stdout: str, stderr: str, success: bool):
+def show_output(stdout: str, stderr: str, success: bool, summary: str = ""):
     """
     Display command output. Green border on success, red on failure.
-    Shows a clean inline status if there was no output at all.
+
+    If summary is provided it's shown prominently above the raw output.
+    Long output (>10 lines) is shown collapsed to 5 lines with a line count.
     """
+    if summary:
+        console.print()
+        console.print(f"  [{_ACCENT}]summary:[/{_ACCENT}]  [{_WHITE}]{summary}[/{_WHITE}]")
+
     if stdout:
         console.print(
             Panel(
@@ -239,6 +257,56 @@ def show_error(message: str):
         )
     )
     console.print()
+
+
+def show_clarification(question: str):
+    """Display a clarification question from the LLM (13B)."""
+    console.print()
+    console.print(
+        Panel(
+            Text(question, style=f"bold {_YELLOW}"),
+            title=Text("clarification needed", style=_YELLOW),
+            border_style=_YELLOW,
+            box=_BOX,
+            padding=(0, 2),
+        )
+    )
+    console.print(f"  [{_DIM}]listening for your answer...[/{_DIM}]")
+    console.print()
+
+
+def show_explanation(explanation: str):
+    """Display an LLM explanation of the last command (13F)."""
+    console.print()
+    console.print(
+        Panel(
+            Text(explanation, style=_WHITE),
+            title=Text("explanation", style=f"bold {_ACCENT}"),
+            border_style=_ACCENT,
+            box=_BOX,
+            padding=(0, 2),
+        )
+    )
+    console.print()
+
+
+def show_error_recovery(suggested_fix: str):
+    """Display a suggested fix after a failed command (13H)."""
+    console.print(f"\n  [{_YELLOW}]command failed — diagnosing...[/{_YELLOW}]")
+    console.print()
+
+
+def show_cd_wrapper_hint(path: str):
+    """Warn once when cd worked in-process but the shell wrapper isn't active."""
+    console.print(
+        f"\n  [{_YELLOW}]cd[/{_YELLOW}] [{_DIM}]changed to[/{_DIM}] [{_WHITE}]{path}[/{_WHITE}] "
+        f"[{_DIM}](only inside voxterm — your terminal hasn't moved)[/{_DIM}]"
+    )
+    console.print(
+        f"  [{_DIM}]to propagate cd to your shell, add to ~/.zshrc:[/{_DIM}]\n"
+        f"  [{_CYAN}]source /Users/soorya/terminaltalker/voxterm.sh[/{_CYAN}]\n"
+        f"  [{_DIM}]then use[/{_DIM}] [{_WHITE}]vt[/{_WHITE}] [{_DIM}]instead of[/{_DIM}] [{_WHITE}]python main.py[/{_WHITE}]\n"
+    )
 
 
 def show_cancelled():

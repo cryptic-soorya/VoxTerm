@@ -17,10 +17,21 @@ import os
 import re
 from pathlib import Path
 
-DEFAULT_TIMEOUT = int(os.getenv("VOCTERM_EXEC_TIMEOUT", "30"))  # seconds
+DEFAULT_TIMEOUT = int(os.getenv("VOXTERM_EXEC_TIMEOUT", "30"))  # seconds
 
 # Shell wrapper reads this file after each run to pick up any cd request.
-_CD_SIGNAL_FILE = Path("/tmp/.vocterm_cd")
+# Placed in $TMPDIR (user-private on macOS, e.g. /var/folders/.../T/) rather
+# than /tmp (world-writable), so other users on the machine can't write a
+# crafted path to it and redirect the shell's working directory.
+_CD_SIGNAL_FILE = Path(os.getenv("TMPDIR", "/tmp")) / ".voxterm_cd"
+
+# Output longer than this many lines gets an LLM-generated summary (13G).
+SUMMARISE_THRESHOLD_LINES = 10
+
+
+def should_summarise(output: str) -> bool:
+    """True if output is long enough to warrant an LLM summary."""
+    return bool(output) and output.count("\n") >= SUMMARISE_THRESHOLD_LINES
 
 
 def _extract_cd_target(command: str) -> str | None:
@@ -67,6 +78,7 @@ def run(command: str, timeout: int = DEFAULT_TIMEOUT) -> dict:
     if cd_target is not None:
         if os.path.isdir(cd_target):
             _CD_SIGNAL_FILE.write_text(cd_target)
+            os.chdir(cd_target)  # update process CWD immediately so subsequent steps see the new directory
             return {
                 "command": command,
                 "stdout": cd_target,
@@ -84,6 +96,12 @@ def run(command: str, timeout: int = DEFAULT_TIMEOUT) -> dict:
                 "success": False,
             }
 
+    # SECURITY NOTE: shell=True means the safety gate in safety.py checks the
+    # command *string*, but the shell interprets it. Shell encoding tricks like
+    # $'rm\x20-rf' or $(rm ...) can bypass substring pattern checks. The
+    # _FORCE_HIGH list in safety.py now blocks "$(" and "`" to catch the most
+    # common substitution forms, but shell=True is inherently a wide surface.
+    # Never call this function without safety.confirm() having returned True.
     try:
         result = subprocess.run(
             command,

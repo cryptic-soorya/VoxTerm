@@ -84,7 +84,7 @@ export default function TerminalMockup() {
           <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
           <div className="w-3 h-3 rounded-full bg-[#febc2e]" />
           <div className="w-3 h-3 rounded-full bg-[#28c840]" />
-          <span className="flex-1 text-center text-[11px] text-muted font-medium mr-8">voxterm — zsh</span>
+          <span className="flex-1 text-center text-[11px] text-muted font-medium mr-8">VoxTerm — zsh</span>
         </div>
 
         {/* Body */}

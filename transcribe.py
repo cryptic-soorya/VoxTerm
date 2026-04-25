@@ -25,6 +25,21 @@ from faster_whisper import WhisperModel
 
 WHISPER_MODEL_SIZE: str = os.getenv("WHISPER_MODEL", "base")
 
+# Vocabulary hint fed to Whisper as an initial_prompt.
+# Whisper biases transcription toward words it sees here, which dramatically
+# reduces mishearing of developer/terminal vocabulary.
+DEVELOPER_VOCAB_PROMPT = (
+    "git commit push pull merge branch checkout rebase stash "
+    "npm install run build start test node python pip brew "
+    "mkdir rmdir chmod chown sudo grep find cat ls pwd cd mv cp rm "
+    "ssh curl wget docker compose kubectl terraform ansible "
+    "homebrew virtualenv conda jupyter pandas numpy "
+    "localhost port server database postgres mongo redis "
+    "API JSON config environment variable export source "
+    "zsh bash shell terminal command flag argument stdin stdout stderr "
+    "VoxTerm voxterm"
+)
+
 # compute_type="int8" uses 8-bit integer weights — 2× faster, ~half the RAM,
 # negligible quality difference for short voice commands.
 # device="cpu" is correct for Apple Silicon until CTranslate2 adds Metal support.
@@ -77,6 +92,7 @@ def transcribe(wav_path: str) -> str:
             language="en",
             vad_filter=True,
             condition_on_previous_text=False,
+            initial_prompt=DEVELOPER_VOCAB_PROMPT,
         )
 
         # segments is a lazy generator — consume it fully.
@@ -112,6 +128,7 @@ def transcribe_and_keep(wav_path: str) -> str:
         language="en",
         vad_filter=True,
         condition_on_previous_text=False,
+        initial_prompt=DEVELOPER_VOCAB_PROMPT,
     )
     parts = [segment.text.strip() for segment in segments]
     return " ".join(p for p in parts if p).strip()

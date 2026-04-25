@@ -1,4 +1,4 @@
-# PLAN.md — vocterm build roadmap
+# PLAN.md — voxterm build roadmap
 
 Everything you need to build this project from zero to GitHub-ready.
 No paid APIs. No subscriptions. Fully free stack.
@@ -7,7 +7,7 @@ No paid APIs. No subscriptions. Fully free stack.
 
 ## The big picture
 
-vocterm has one job: take voice input and safely run shell commands. Every design decision flows from two principles:
+voxterm has one job: take voice input and safely run shell commands. Every design decision flows from two principles:
 
 1. **Never surprise the user** — always show what you're about to do before doing it
 2. **Free and local first** — Whisper on-device, Ollama as primary LLM, Gemini free tier as fallback
@@ -564,7 +564,7 @@ def recent(n: int = 20) -> list[tuple]:
 **Goal:** say "undo" to reverse the last reversible command.
 **File:** `undo.py`
 
-The undo stack is a simple Python list kept in memory. It resets when vocterm exits — intentionally. Persisting undo to disk would mean old destructive inverses could be replayed much later, which is risky.
+The undo stack is a simple Python list kept in memory. It resets when voxterm exits — intentionally. Persisting undo to disk would mean old destructive inverses could be replayed much later, which is risky.
 
 ```python
 # undo.py
@@ -964,11 +964,11 @@ data/
 ## Post-MVP ideas
 
 - Native macOS menu bar app with rumps (no terminal needed to activate)
-- Wake word detection ("hey vocterm") using porcupine (free tier)
+- Wake word detection ("hey voxterm") using porcupine (free tier)
 - Voice output via macOS built-in `say` command
 - Web history dashboard
 - Shell integration: source into existing terminal sessions
-- Homebrew formula so users can `brew install vocterm`
+- Homebrew formula so users can `brew install voxterm`
 
 
 ---
@@ -987,7 +987,7 @@ This phase has four sub-steps:
 
 ### Step 12A — Menu bar GUI with rumps
 
-Right now vocterm lives in Terminal. For a downloadable app, people expect something that sits in their menu bar — like how Dropbox or Bartender work. You click the icon, something happens, you go back to what you were doing.
+Right now voxterm lives in Terminal. For a downloadable app, people expect something that sits in their menu bar — like how Dropbox or Bartender work. You click the icon, something happens, you go back to what you were doing.
 
 **rumps** (Ridiculously Uncomplicated macOS Python Statusbar apps) is a Python library that creates native macOS menu bar apps. It wraps PyObjC (the Python-to-macOS bridge) in a dead-simple API. Your entire backend — audio.py, transcribe.py, translate.py, all of it — stays exactly the same. rumps is just a thin shell on top.
 
@@ -1012,12 +1012,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-class VocTermApp(rumps.App):
+class VoxTermApp(rumps.App):
     def __init__(self):
         super().__init__(
-            name="vocterm",
+            name="voxterm",
             title="🎙",          # this is what shows in the menu bar
-            quit_button="Quit vocterm"
+            quit_button="Quit voxterm"
         )
         self.menu = [
             "Listen",
@@ -1043,7 +1043,7 @@ class VocTermApp(rumps.App):
         threading.Thread(target=self._run_pipeline, daemon=True).start()
 
     def _run_pipeline(self):
-        """Full vocterm pipeline. Runs on a background thread."""
+        """Full voxterm pipeline. Runs on a background thread."""
         try:
             wav_path = record_until_silence()
             self.title = "⏳"
@@ -1064,7 +1064,7 @@ class VocTermApp(rumps.App):
                     result = translate(transcript, context_str)
 
             if "error" in result:
-                rumps.notification("vocterm", "could not translate", result["error"])
+                rumps.notification("voxterm", "could not translate", result["error"])
                 return
 
             # confirm_gui shows a native macOS dialog instead of terminal prompts
@@ -1088,7 +1088,7 @@ class VocTermApp(rumps.App):
 
             # native macOS notification with result
             rumps.notification(
-                title="vocterm",
+                title="voxterm",
                 subtitle="done" if success else "failed",
                 message=out_text[:100] if out_text else cmd_str
             )
@@ -1103,9 +1103,9 @@ class VocTermApp(rumps.App):
             rumps.alert("nothing to undo")
             return
         cmd = pop_undo()
-        rumps.notification("vocterm", "undoing", cmd)
+        rumps.notification("voxterm", "undoing", cmd)
         output = run(cmd)
-        rumps.notification("vocterm", "undone" if output["success"] else "undo failed",
+        rumps.notification("voxterm", "undone" if output["success"] else "undo failed",
                           output["stdout"] or output["stderr"])
 
     @rumps.clicked("History")
@@ -1125,19 +1125,19 @@ class VocTermApp(rumps.App):
         """
         response = rumps.Window(
             message="Gemini API key (free at aistudio.google.com)\nLeave blank to use Ollama only.",
-            title="vocterm preferences",
+            title="voxterm preferences",
             default_text="",
             ok="Save",
             cancel="Cancel"
         ).run()
         if response.clicked and response.text.strip():
-            env_path = Path.home() / ".vocterm.env"
+            env_path = Path.home() / ".voxterm.env"
             env_path.write_text(f"GEMINI_API_KEY={response.text.strip()}\n")
-            rumps.notification("vocterm", "saved", "API key saved to ~/.vocterm.env")
+            rumps.notification("voxterm", "saved", "API key saved to ~/.voxterm.env")
 
 
 if __name__ == "__main__":
-    VocTermApp().run()
+    VoxTermApp().run()
 ```
 
 ### confirm_gui — native dialogs instead of terminal prompts
@@ -1205,8 +1205,8 @@ Install: `pip install pyinstaller`
 **The spec file** is PyInstaller's config. Instead of running pyinstaller with a hundred flags, you write a `.spec` file once and reuse it.
 
 ```python
-# vocterm.spec
-# run with: pyinstaller vocterm.spec
+# voxterm.spec
+# run with: pyinstaller voxterm.spec
 
 block_cipher = None
 
@@ -1238,7 +1238,7 @@ pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 exe = EXE(
     pyz, a.scripts, [],
     exclude_binaries=True,
-    name="vocterm",
+    name="voxterm",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -1250,16 +1250,16 @@ coll = COLLECT(
     exe, a.trees, a.binaries, a.zipfiles, a.datas,
     strip=False,
     upx=False,
-    name="vocterm"
+    name="voxterm"
 )
 
 app = BUNDLE(
     coll,
-    name="vocterm.app",
+    name="voxterm.app",
     icon="assets/icon.icns",
-    bundle_identifier="com.yourname.vocterm",   # reverse domain, make it yours
+    bundle_identifier="com.yourname.voxterm",   # reverse domain, make it yours
     info_plist={
-        "NSMicrophoneUsageDescription": "vocterm needs mic access to hear your voice commands.",
+        "NSMicrophoneUsageDescription": "voxterm needs mic access to hear your voice commands.",
         "LSUIElement": True,    # makes it a menu bar app (no Dock icon)
         "CFBundleShortVersionString": "1.0.0",
     },
@@ -1268,19 +1268,19 @@ app = BUNDLE(
 
 Key things in that spec worth understanding:
 
-`console=False` — tells PyInstaller not to open a Terminal window when the app launches. Without this, every time someone opens vocterm a black Terminal flashes open.
+`console=False` — tells PyInstaller not to open a Terminal window when the app launches. Without this, every time someone opens voxterm a black Terminal flashes open.
 
-`LSUIElement: True` — this Info.plist key tells macOS "this is a menu bar app, don't show it in the Dock." Without it, vocterm shows up as a regular app with a Dock icon.
+`LSUIElement: True` — this Info.plist key tells macOS "this is a menu bar app, don't show it in the Dock." Without it, voxterm shows up as a regular app with a Dock icon.
 
-`NSMicrophoneUsageDescription` — macOS requires apps to declare why they need microphone access. This string shows up in the system permission dialog when the user first runs vocterm. Without it, macOS will silently deny mic access and your app won't work.
+`NSMicrophoneUsageDescription` — macOS requires apps to declare why they need microphone access. This string shows up in the system permission dialog when the user first runs voxterm. Without it, macOS will silently deny mic access and your app won't work.
 
 **Building the app:**
 ```bash
 # from your project root, with venv activated
-pyinstaller vocterm.spec
+pyinstaller voxterm.spec
 
 # your app appears at:
-dist/vocterm.app
+dist/voxterm.app
 ```
 
 **The app icon** — you need a `.icns` file (macOS icon format). Make a 1024x1024 PNG of your logo, then convert it:
@@ -1307,27 +1307,27 @@ Install: `brew install create-dmg`
 ```bash
 # run this after building the .app
 create-dmg \
-  --volname "vocterm" \
+  --volname "voxterm" \
   --volicon "assets/icon.icns" \
   --window-pos 200 120 \
   --window-size 600 400 \
   --icon-size 100 \
-  --icon "vocterm.app" 175 190 \
-  --hide-extension "vocterm.app" \
+  --icon "voxterm.app" 175 190 \
+  --hide-extension "voxterm.app" \
   --app-drop-link 425 190 \
   --background "assets/dmg-background.png" \
-  "dist/vocterm-1.0.0.dmg" \
-  "dist/vocterm.app"
+  "dist/voxterm-1.0.0.dmg" \
+  "dist/voxterm.app"
 ```
 
 What each flag does:
 - `--volname` — the name that appears when the DMG mounts
 - `--window-size 600 400` — size of the installer window in pixels
-- `--icon "vocterm.app" 175 190` — position of your app icon (x y from top-left)
+- `--icon "voxterm.app" 175 190` — position of your app icon (x y from top-left)
 - `--app-drop-link 425 190` — position of the Applications shortcut the user drags to
 - `--background` — a PNG image shown behind the icons (make a simple 600x400 image with an arrow pointing right, very professional looking)
 
-Result: `dist/vocterm-1.0.0.dmg` — this is the file you upload to GitHub and link from your website.
+Result: `dist/voxterm-1.0.0.dmg` — this is the file you upload to GitHub and link from your website.
 
 **DMG background image** — a 600x400 PNG. Keep it simple: dark or light background, your app name in big text, a subtle arrow pointing from left to right (app icon → Applications folder). You can make this in Figma, Canva, or even Preview. This single image makes your download look 10x more professional.
 
@@ -1344,7 +1344,7 @@ GitHub Releases is free file hosting built into every GitHub repo. You upload yo
 4. Publish
 
 GitHub generates a permanent download URL like:
-`https://github.com/yourusername/vocterm/releases/download/v1.0.0/vocterm-1.0.0.dmg`
+`https://github.com/yourusername/voxterm/releases/download/v1.0.0/voxterm-1.0.0.dmg`
 
 That's the URL your landing page download button points to.
 
@@ -1365,7 +1365,7 @@ A simple one-page site. Host it free on GitHub Pages (already attached to your r
 
 **The security warning section** — this is important to include so users aren't scared off:
 
-> "When you first open vocterm, macOS may show a warning that it's from an unidentified developer. This is normal for apps not distributed through the Mac App Store. To open it: right-click the app → Open → Open. You'll only need to do this once."
+> "When you first open voxterm, macOS may show a warning that it's from an unidentified developer. This is normal for apps not distributed through the Mac App Store. To open it: right-click the app → Open → Open. You'll only need to do this once."
 
 **Website setup (React, replaces static docs/):**
 The landing page is a full React app in `website/` using Vite, Tailwind CSS, and Framer Motion. Components: Nav, Hero, Features, HowItWorks, Safety, Privacy, Download, Footer.
@@ -1394,23 +1394,23 @@ echo "cleaning previous build..."
 rm -rf build/ dist/
 
 echo "building .app..."
-pyinstaller vocterm.spec
+pyinstaller voxterm.spec
 
 echo "creating DMG..."
 create-dmg \
-  --volname "vocterm" \
+  --volname "voxterm" \
   --volicon "assets/icon.icns" \
   --window-pos 200 120 \
   --window-size 600 400 \
   --icon-size 100 \
-  --icon "vocterm.app" 175 190 \
-  --hide-extension "vocterm.app" \
+  --icon "voxterm.app" 175 190 \
+  --hide-extension "voxterm.app" \
   --app-drop-link 425 190 \
   --background "assets/dmg-background.png" \
-  "dist/vocterm-${VERSION}.dmg" \
-  "dist/vocterm.app"
+  "dist/voxterm-${VERSION}.dmg" \
+  "dist/voxterm.app"
 
-echo "done: dist/vocterm-${VERSION}.dmg"
+echo "done: dist/voxterm-${VERSION}.dmg"
 echo "upload this file to GitHub Releases"
 ```
 
@@ -1421,9 +1421,9 @@ Run with: `chmod +x build.sh && ./build.sh`
 ### Updated folder structure (Phase 12 additions)
 
 ```
-vocterm/
+voxterm/
 ├── app_gui.py           ← NEW: rumps menu bar app (GUI entry point)
-├── vocterm.spec         ← NEW: PyInstaller config
+├── voxterm.spec         ← NEW: PyInstaller config
 ├── build.sh             ← NEW: one-command build script
 ├── assets/
 │   ├── icon.icns        ← NEW: app icon (macOS format)
@@ -1434,8 +1434,8 @@ vocterm/
 │   ├── package.json
 │   └── dist/            ← generated by `npm run build`, deploy this to GitHub Pages or Vercel
 ├── dist/                ← generated by PyInstaller, gitignored
-│   ├── vocterm.app
-│   └── vocterm-1.0.0.dmg
+│   ├── voxterm.app
+│   └── voxterm-1.0.0.dmg
 ├── build/               ← generated by PyInstaller, gitignored
 ... (all existing files unchanged)
 ```
@@ -1459,8 +1459,8 @@ build/
 - [ ] Make icon PNG (1024x1024) and convert to .icns
 - [ ] Make DMG background PNG (600x400)
 - [ ] Install PyInstaller: `pip install pyinstaller`
-- [ ] Write vocterm.spec
-- [ ] Test PyInstaller build: `pyinstaller vocterm.spec`
+- [ ] Write voxterm.spec
+- [ ] Test PyInstaller build: `pyinstaller voxterm.spec`
 - [ ] Test the built .app opens and works (no Terminal)
 - [ ] Install create-dmg: `brew install create-dmg`
 - [ ] Build DMG: run build.sh
@@ -1564,7 +1564,7 @@ if result.get("clarification"):
     import subprocess
     subprocess.run(["say", question])  # built-in macOS TTS, free
     
-    console.print(f"\n[yellow]vocterm:[/yellow] {question}")
+    console.print(f"\n[yellow]voxterm:[/yellow] {question}")
     console.print("[dim]listening for your answer...[/dim]")
     
     # listen for the answer
@@ -1691,7 +1691,7 @@ def transcribe(wav_path: str) -> str:
 
 ### 13E — Global hotkey activation
 
-**The problem it solves:** having to type `python main.py` or click a menu bar icon kills the flow. A global hotkey lets you trigger vocterm from anywhere on your Mac — mid-browser, mid-editor, anywhere — without switching windows.
+**The problem it solves:** having to type `python main.py` or click a menu bar icon kills the flow. A global hotkey lets you trigger voxterm from anywhere on your Mac — mid-browser, mid-editor, anywhere — without switching windows.
 
 **How it works:** `pynput` is a Python library that registers a global keyboard listener that works even when your app isn't focused. When the hotkey is detected, it triggers the pipeline.
 
@@ -1702,7 +1702,7 @@ Add to `app_gui.py`:
 ```python
 from pynput import keyboard as kb
 
-# inside VocTermApp.__init__():
+# inside VoxTermApp.__init__():
 self._start_hotkey_listener()
 
 def _start_hotkey_listener(self):
@@ -1749,7 +1749,7 @@ VOCTERM_HOTKEY=<cmd>+<shift>+space   # change to whatever you prefer
 
 ### 13F — Command explanation mode
 
-**The problem it solves:** users learn nothing from just watching commands run. This feature makes vocterm genuinely educational — every command teaches you something.
+**The problem it solves:** users learn nothing from just watching commands run. This feature makes voxterm genuinely educational — every command teaches you something.
 
 **How it works:** if the user says "explain that" or "what did that do" after a command runs, a special pipeline runs — no new command is generated, the LLM just narrates what the previous command did in plain English.
 

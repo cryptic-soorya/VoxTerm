@@ -2,7 +2,7 @@
 undo.py — in-memory undo stack
 
 Stores inverse commands after each successful execution.
-Intentionally in-memory only — resets when vocterm exits.
+Intentionally in-memory only — resets when VoxTerm exits.
 Persisting undo to disk would allow stale destructive inverses
 to be replayed much later, which is unsafe.
 

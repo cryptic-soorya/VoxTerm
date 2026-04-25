@@ -1,11 +1,11 @@
-# vocterm
+# VoxTerm
 
 > Speak a command. See it. Confirm it. Done.
 
 <!-- demo GIF goes here — record with Kap or asciinema -->
 <!-- ![demo](docs/demo.gif) -->
 
-**vocterm** is a voice-controlled terminal assistant for macOS (Apple Silicon). Speak plain English, get a shell command, review it, run it. Everything runs on your machine — no cloud, no subscriptions, no API fees.
+**VoxTerm** is a voice-controlled terminal assistant for macOS (Apple Silicon). Speak plain English, get a shell command, review it, run it. Everything runs on your machine — no cloud, no subscriptions, no API fees.
 
 ```
 100% free  ·  works offline  ·  never runs anything without showing you first
@@ -35,8 +35,8 @@ Every command is shown before it runs. Destructive commands (anything with `rm`,
 ## Install
 
 ```bash
-git clone https://github.com/yourusername/vocterm
-cd vocterm
+git clone https://github.com/yourusername/voxterm
+cd voxterm
 
 # install PortAudio (required by PyAudio)
 brew install portaudio
@@ -79,7 +79,7 @@ cp .env.example .env
 # edit .env and set GEMINI_API_KEY=your_key_here
 ```
 
-vocterm auto-detects which backend to use — Ollama if it's running, Gemini if a key is set, helpful error if neither.
+VoxTerm auto-detects which backend to use — Ollama if it's running, Gemini if a key is set, helpful error if neither.
 
 ---
 
@@ -98,8 +98,8 @@ Add the shell wrapper to your `.zshrc` so `cd` commands actually work in your sh
 ```bash
 # add to ~/.zshrc
 vt() {
-    python3 ~/vocterm/main.py "$@"
-    local _vt_cd="/tmp/.vocterm_cd"
+    python3 ~/voxterm/main.py "$@"
+    local _vt_cd="/tmp/.voxterm_cd"
     if [[ -f "$_vt_cd" ]]; then
         local _vt_dir=$(cat "$_vt_cd")
         rm -f "$_vt_cd"
@@ -127,7 +127,7 @@ vt alias delete NAME  # remove a shortcut
 
 ## Risk levels
 
-vocterm classifies every command before showing it to you. The LLM's assessment is a suggestion — hardcoded rules always win.
+VoxTerm classifies every command before showing it to you. The LLM's assessment is a suggestion — hardcoded rules always win.
 
 | Risk | What it looks like | What happens |
 |---|---|---|
@@ -135,7 +135,7 @@ vocterm classifies every command before showing it to you. The LLM's assessment 
 | **medium** | `git push`, `mkdir foo`, `npm install` | Shows command, asks Y/n |
 | **high** | `rm`, `sudo`, `chmod`, `chown`, `-rf` | Full warning panel, must type `"yes"` |
 
-High-risk commands are forced by vocterm regardless of what the LLM thinks. No amount of clever phrasing can convince vocterm to silently delete files.
+High-risk commands are forced by VoxTerm regardless of what the LLM thinks. No amount of clever phrasing can convince VoxTerm to silently delete files.
 
 ---
 
@@ -158,7 +158,7 @@ If your transcript contains the trigger word, the plugin command runs. Zero late
 
 ## Aliases
 
-vocterm learns from repetition. Say the same thing 3+ times and it will offer to save it as a named alias:
+VoxTerm learns from repetition. Say the same thing 3+ times and it will offer to save it as a named alias:
 
 ```bash
 vt alias list           # show all saved aliases
@@ -187,7 +187,7 @@ Set these in your `.env` file (copy `.env.example` to get started):
 ## Project structure
 
 ```
-vocterm/
+voxterm/
 ├── main.py          ← CLI entry point (Click)
 ├── audio.py         ← mic recording + VAD silence detection
 ├── transcribe.py    ← Whisper transcription

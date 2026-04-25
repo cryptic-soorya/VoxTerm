@@ -26,11 +26,15 @@ import os
 import ui
 from audio import record_until_silence
 from transcribe import transcribe
-from translate import translate, check_plugins
+from translate import (
+    translate, check_plugins,
+    is_explain_request, explain_last_command,
+    is_summarise_request, summarise_output, diagnose_error,
+)
 from context import get_context
 from safety import confirm, final_risk
 from executor import run, run_steps, _CD_SIGNAL_FILE
-from history import init as init_db, log, recent
+from history import init as init_db, log, recent, recent_full
 from undo import push as push_undo, pop as pop_undo, can_undo
 from aliases import match as match_alias, check_for_repeat, save as save_alias, load as load_aliases, delete as delete_alias
 
@@ -43,13 +47,18 @@ def _handle_cd(output: dict):
     """
     If a cd command succeeded, update the process CWD so that the next
     context.get_context() call reflects the new location.
-    The shell wrapper reads _CD_SIGNAL_FILE to actually cd in the parent shell.
+    The shell wrapper (voxterm.sh) reads _CD_SIGNAL_FILE to cd in the parent shell.
+    If the wrapper isn't active, show a one-time setup hint.
     """
     if output.get("cd"):
+        # os.chdir() already happened inside executor.py, but call it again
+        # here as a safety net in case multiple outputs are processed.
         try:
             os.chdir(output["cd"])
         except OSError:
             pass
+        if not os.getenv("VOXTERM_SHELL_WRAPPER"):
+            ui.show_cd_wrapper_hint(output["cd"])
 
 
 # ---------------------------------------------------------------------------
@@ -62,7 +71,7 @@ def _handle_cd(output: dict):
 @click.option("--cloud",    is_flag=True, help="Force Gemini free API.")
 @click.pass_context
 def cli(ctx, dry_run, offline, cloud):
-    """vocterm — voice-controlled terminal assistant."""
+    """VoxTerm — voice-controlled terminal assistant."""
     if ctx.invoked_subcommand is not None:
         return
 
@@ -91,8 +100,25 @@ def cli(ctx, dry_run, offline, cloud):
 
     ui.show_transcript(transcript)
 
-    # ── 3. Resolve command (plugins → aliases → LLM) ──────────────────────
+    # ── 3. Explain mode (13F) — handle before normal pipeline ─────────────
     context_str = get_context()
+
+    if is_explain_request(transcript):
+        rows = recent_full(1)
+        if rows:
+            last_cmd = rows[0][2] or ""
+            last_output = rows[0][5] or ""
+            with ui.thinking():
+                explanation = explain_last_command(last_cmd, last_output, context_str)
+            if explanation:
+                ui.show_explanation(explanation)
+            else:
+                ui.show_error("couldn't generate explanation — is your LLM running?")
+        else:
+            ui.console.print(f"\n  [{ui._DIM}]no previous command to explain[/{ui._DIM}]\n")
+        return
+
+    # ── 4. Resolve command (plugins → aliases → LLM) ──────────────────────
     result = None
 
     plugin_cmd = check_plugins(transcript)
@@ -104,6 +130,7 @@ def cli(ctx, dry_run, offline, cloud):
             "explanation": "plugin command",
             "destructive": False,
             "inverse_command": None,
+            "clarification": None,
         }
 
     if result is None:
@@ -116,6 +143,7 @@ def cli(ctx, dry_run, offline, cloud):
                 "explanation": "saved alias",
                 "destructive": False,
                 "inverse_command": None,
+                "clarification": None,
             }
 
     if result is None:
@@ -127,12 +155,35 @@ def cli(ctx, dry_run, offline, cloud):
                 force_cloud=cloud,
             )
 
-    # ── 4. Handle LLM errors ──────────────────────────────────────────────
+    # ── 5. Handle LLM errors ──────────────────────────────────────────────
     if "error" in result:
         ui.show_error(result["error"])
         sys.exit(1)
 
-    # ── 5. Safety gate + confirmation ─────────────────────────────────────
+    # ── 6. Clarification loop (13B) — ask and re-translate if needed ───────
+    if result.get("clarification"):
+        ui.show_clarification(result["clarification"])
+        with ui.listening():
+            try:
+                answer_wav = record_until_silence()
+            except RuntimeError as exc:
+                ui.show_error(str(exc))
+                sys.exit(1)
+        with ui.transcribing():
+            try:
+                answer = transcribe(answer_wav)
+            except Exception as exc:
+                ui.show_error(f"transcription failed: {exc}")
+                sys.exit(1)
+        if answer:
+            combined = f"{transcript}. To clarify: {answer}"
+            with ui.thinking():
+                result = translate(combined, context_str, force_offline=offline, force_cloud=cloud)
+            if "error" in result:
+                ui.show_error(result["error"])
+                sys.exit(1)
+
+    # ── 7. Safety gate + confirmation ─────────────────────────────────────
     if not confirm(result, dry_run=dry_run):
         ui.show_cancelled()
         return
@@ -140,7 +191,7 @@ def cli(ctx, dry_run, offline, cloud):
     if dry_run:
         return
 
-    # ── 6. Execute ────────────────────────────────────────────────────────
+    # ── 8. Execute ────────────────────────────────────────────────────────
     if result.get("steps"):
         outputs = run_steps(result["steps"])
         for output in outputs:
@@ -156,12 +207,33 @@ def cli(ctx, dry_run, offline, cloud):
         success  = output["success"]
         cmd_str  = result["command"]
         out_text = output["stdout"]
-        ui.show_output(output["stdout"], output["stderr"], output["success"])
 
-    # ── 7. Log to history ─────────────────────────────────────────────────
+        # 13G — summarise output only when explicitly requested
+        summary = ""
+        if success and is_summarise_request(transcript) and out_text:
+            with ui.summarising():
+                summary = summarise_output(cmd_str, out_text)
+
+        ui.show_output(output["stdout"], output["stderr"], output["success"], summary=summary)
+
+        # 13H — auto error recovery on failure
+        if not success and output.get("stderr"):
+            ui.show_error_recovery(output["stderr"])
+            with ui.thinking():
+                fix = diagnose_error(cmd_str, output["stderr"], context_str)
+            if "error" not in fix and fix.get("command"):
+                if confirm(fix):
+                    fixed_output = run(fix["command"])
+                    ui.show_output(fixed_output["stdout"], fixed_output["stderr"], fixed_output["success"])
+                    if fixed_output["success"]:
+                        log(f"[auto-fix] {transcript}", fix["command"],
+                            fix.get("risk", "medium"), True, fixed_output["stdout"])
+                        return
+
+    # ── 9. Log to history ─────────────────────────────────────────────────
     log(transcript, cmd_str, result.get("risk", "low"), success, out_text)
 
-    # ── 8. Offer alias if request is repeated ─────────────────────────────
+    # ── 10. Offer alias if request is repeated ────────────────────────────
     if success and check_for_repeat(transcript):
         name = ui.show_alias_prompt()
         if name:
@@ -184,12 +256,15 @@ def undo():
     result = {
         "command": cmd,
         "steps": None,
-        "risk": "medium",
-        "explanation": "undo last command",
+        "risk": "medium",        # floor — confirm() calls final_risk() which may
+        "explanation": "undo last command",  # escalate to HIGH if cmd matches _FORCE_HIGH
         "destructive": False,
         "inverse_command": None,
     }
 
+    # confirm() → final_risk() re-validates the inverse_command against all
+    # _FORCE_HIGH patterns, so a malicious LLM-generated inverse_command
+    # containing rm/sudo/etc. is caught here regardless of the "medium" floor.
     if confirm(result):
         output = run(cmd)
         ui.show_output(output["stdout"], output["stderr"], output["success"])

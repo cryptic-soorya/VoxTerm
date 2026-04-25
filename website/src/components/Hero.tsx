@@ -72,7 +72,7 @@ export default function Hero() {
             Download for Mac
           </motion.a>
           <motion.a
-            href="https://github.com/yourusername/vocterm"
+            href="https://github.com/yourusername/voxterm"
             target="_blank"
             className="flex items-center gap-2 px-6 py-3.5 border border-white/[0.08] text-muted text-[15px] font-medium rounded-xl"
             whileHover={{ borderColor: 'rgba(255,255,255,0.2)', color: '#f0f0f8', scale: 1.02 }}
