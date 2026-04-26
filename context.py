@@ -22,7 +22,9 @@ def get_filesystem_context(max_items: int = 20) -> str:
     try:
         items = []
         for entry in sorted(os.scandir("."), key=lambda e: e.name):
-            if entry.name.startswith("."):
+            # Skip hidden files but keep hidden directories (e.g. .venv, .git) —
+            # they're important for the LLM to know about when generating commands.
+            if entry.name.startswith(".") and not entry.is_dir():
                 continue
             if entry.is_dir():
                 items.append(f"  {entry.name}/")
