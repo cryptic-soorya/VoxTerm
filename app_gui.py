@@ -92,8 +92,8 @@ import rumps  # noqa: E402
 # ---------------------------------------------------------------------------
 
 # context and safety are lightweight — safe to import at module level.
-from context import get_context  # noqa: E402
-from safety import final_risk    # noqa: E402
+from voxterm.context import get_context  # noqa: E402
+from voxterm.safety import final_risk    # noqa: E402
 
 # AppHelper.callAfter dispatches a callable onto the main run loop, which is
 # how rumps.alert / rumps.Window must be invoked — Cocoa UI is not thread-safe.
@@ -207,13 +207,22 @@ def _notify(title: str, message: str, subtitle: str = ""):
     Send a macOS notification for non-critical results (success, output).
     For errors use _alert_error() — notifications require OS permission
     and may be silently dropped if the user hasn't granted it yet.
+
+    rumps.notification() requires a real app-bundle identity (Info.plist with
+    CFBundleIdentifier), which only exists once PyInstaller freezes this into
+    a .app. Running via plain `python app_gui.py` from a venv has no bundle,
+    so NSUserNotificationCenter setup raises RuntimeError. That's expected
+    there — swallow it instead of crashing the pipeline thread.
     """
-    rumps.notification(
-        title=title,
-        subtitle=subtitle,
-        message=message[:256] if message else "",
-        sound=False,
-    )
+    try:
+        rumps.notification(
+            title=title,
+            subtitle=subtitle,
+            message=message[:256] if message else "",
+            sound=False,
+        )
+    except Exception as exc:
+        print(f"[voxterm] notification skipped ({exc.__class__.__name__}): {title} — {message}", flush=True)
 
 
 def _open_linked_terminal():
@@ -229,55 +238,66 @@ def _open_linked_terminal():
     import subprocess
 
     # Detect whether we're running from source or the frozen .app bundle.
-    # When frozen, sys.frozen is set by PyInstaller. The bundled Python
-    # executable can't be re-invoked as a regular interpreter, so we tell
-    # the user to use the system Python in this case.
+    # When frozen, sys.frozen is set by PyInstaller and sys.executable IS the
+    # bundled voxterm binary itself (Contents/MacOS/voxterm) — it can re-invoke
+    # itself with --cli to run the interactive Rich-UI pipeline, so no source
+    # checkout or separate CLI binary is needed.
     is_frozen = getattr(sys, "frozen", False)
 
-    repo_root = Path(__file__).resolve().parent
-    voxterm_sh = repo_root / "voxterm.sh"
-    main_py = repo_root / "main.py"
-
-    if is_frozen or not voxterm_sh.exists() or not main_py.exists():
-        _on_main(
-            rumps.alert,
-            title="Open VoxTerm in Terminal",
-            message=(
-                "To use VoxTerm in your existing terminal alongside the menu "
-                "bar app, clone the repo and run:\n\n"
-                "  cd ~/voxterm\n"
-                "  source voxterm.sh\n"
-                "  vt\n\n"
-                "Both processes share history, aliases, and cd state."
-            ),
+    if is_frozen:
+        bin_quoted = shlex.quote(sys.executable)
+        # Loop so the user doesn't have to reopen this window for every command.
+        inner = (
+            f'echo "VoxTerm linked terminal — press Enter to speak a command, Ctrl-C to quit." && '
+            f'while true; do '
+            f'read -r "?▶ press Enter to listen… "; '
+            f'{bin_quoted} --cli; '
+            f'done'
         )
-        return
+    else:
+        repo_root = Path(__file__).resolve().parent
+        voxterm_sh = repo_root / "voxterm.sh"
+        main_py = repo_root / "voxterm" / "main.py"
 
-    # Use the same Python interpreter that's running this script so the
-    # spawned terminal has the right venv — no manual activation needed.
-    python_bin = shlex.quote(sys.executable)
-    repo_quoted = shlex.quote(str(repo_root))
+        if not voxterm_sh.exists() or not main_py.exists():
+            _on_main(
+                rumps.alert,
+                title="Open VoxTerm in Terminal",
+                message="Couldn't find voxterm.sh / voxterm/main.py next to app_gui.py.",
+            )
+            return
 
-    # Compose the shell command Terminal.app will execute. We:
-    #   1. cd into the repo
-    #   2. source voxterm.sh so `vt` is defined (cd propagation)
-    #   3. start an interactive zsh; user runs `vt` whenever they want
-    #
-    # VOXTERM_SHELL_WRAPPER=1 disables the cd-wrapper hint inside main.py
-    # because voxterm.sh handles cd in this session.
-    inner = (
-        f"cd {repo_quoted} && "
-        f"export VOXTERM_PYTHON={python_bin} && "
-        f"export VOXTERM_SHELL_WRAPPER=1 && "
-        f"source ./voxterm.sh && "
-        f'echo "VoxTerm linked terminal — type \\`vt\\` to start a voice command." && '
-        f"exec zsh -i"
-    )
+        # Use the same Python interpreter that's running this script so the
+        # spawned terminal has the right venv — no manual activation needed.
+        python_bin = shlex.quote(sys.executable)
+        repo_quoted = shlex.quote(str(repo_root))
+
+        # Compose the shell command Terminal.app will execute. We:
+        #   1. cd into the repo
+        #   2. source voxterm.sh so `vt` is defined (cd propagation)
+        #   3. start an interactive zsh; user runs `vt` whenever they want
+        #
+        # VOXTERM_SHELL_WRAPPER=1 disables the cd-wrapper hint inside main.py
+        # because voxterm.sh handles cd in this session.
+        inner = (
+            f"cd {repo_quoted} && "
+            f"export VOXTERM_PYTHON={python_bin} && "
+            f"export VOXTERM_SHELL_WRAPPER=1 && "
+            f"source ./voxterm.sh && "
+            f'echo "VoxTerm linked terminal — type \\`vt\\` to start a voice command." && '
+            f"exec zsh -i"
+        )
+
+    # Escape for embedding inside an AppleScript double-quoted string literal —
+    # `inner` contains its own double quotes (echo/read prompts) which would
+    # otherwise terminate the `do script "..."` string early and produce an
+    # AppleScript syntax error.
+    escaped_inner = inner.replace("\\", "\\\\").replace('"', '\\"')
 
     osa = (
         'tell application "Terminal"\n'
         '  activate\n'
-        f'  do script "{inner}"\n'
+        f'  do script "{escaped_inner}"\n'
         'end tell'
     )
 
@@ -403,18 +423,18 @@ def _run_pipeline_inner(app: "VoxtermApp", dry_run: bool = False):
     # pyaudio are only initialised when a listen cycle actually starts.
     # This keeps the menu bar icon appearing instantly and prevents the
     # multiprocessing fork-bomb in the frozen app.
-    from audio import record_until_silence
-    from transcribe import transcribe
-    from translate import translate, check_plugins, is_explain_request, explain_last_command
-    from executor import run, run_steps
-    from history import log, recent_full
-    from undo import push as push_undo
-    from aliases import match as match_alias
+    from voxterm.audio import record_until_silence
+    from voxterm.transcribe import transcribe
+    from voxterm.translate import translate, check_plugins, is_explain_request, explain_last_command
+    from voxterm.executor import run, run_steps
+    from voxterm.history import log, recent_full
+    from voxterm.undo import push as push_undo
+    from voxterm.aliases import match as match_alias
 
     # In terminal mode, use the Rich UI layer so the user can see and interact
     # with the pipeline directly in their shell session.
     if _IS_TERMINAL:
-        import ui as _ui
+        from voxterm import ui as _ui
 
     # ── 1. Record ─────────────────────────────────────────────────────────
     app._set_state("listening")
@@ -558,7 +578,7 @@ def _run_pipeline_inner(app: "VoxtermApp", dry_run: bool = False):
     # In terminal mode use the Rich/stdin confirmation so the user can interact
     # in their shell; in pure GUI mode use rumps dialogs.
     if _IS_TERMINAL:
-        from safety import confirm as _terminal_confirm
+        from voxterm.safety import confirm as _terminal_confirm
         confirmed = _terminal_confirm(result, dry_run=dry_run)
     else:
         confirmed = _confirm(result, dry_run=dry_run)
@@ -668,8 +688,8 @@ class PreferencesWindow:
 # ---------------------------------------------------------------------------
 
 def _run_undo():
-    from undo import can_undo, pop as pop_undo
-    from executor import run
+    from voxterm.undo import can_undo, pop as pop_undo
+    from voxterm.executor import run
     if not can_undo():
         _on_main(rumps.alert, title="VoxTerm", message="Nothing to undo.")
         return
@@ -712,6 +732,7 @@ class VoxtermApp(rumps.App):
             rumps.MenuItem("Listen", callback=self._on_listen, key="l"),
             None,                   # separator
             rumps.MenuItem("Open in Terminal…", callback=self._on_open_terminal),
+            rumps.MenuItem("Copy command for my own terminal", callback=self._on_copy_cli_command),
             rumps.MenuItem("Undo last command", callback=self._on_undo),
             None,
             rumps.MenuItem("Preferences…", callback=self._on_preferences),
@@ -726,6 +747,10 @@ class VoxtermApp(rumps.App):
         # Startup LLM check — warn immediately if no backend is reachable so
         # the user isn't left wondering why Listen does nothing.
         threading.Thread(target=self._check_llm_on_startup, daemon=True).start()
+
+        # Auto-open a linked Terminal window so command output is always
+        # visible somewhere, not just as notifications/alerts.
+        threading.Thread(target=_open_linked_terminal, daemon=True).start()
 
     # ── State management ───────────────────────────────────────────────────
 
@@ -802,8 +827,8 @@ class VoxtermApp(rumps.App):
         Open a Terminal.app window linked to the menu bar app.
 
         The new terminal session shares the SQLite history DB and aliases
-        with the menu bar app (both read/write data/history.db and
-        data/aliases.json), and the cd-signal file so directory changes
+        with the menu bar app (both read/write ~/.voxterm/history.db and
+        ~/.voxterm/aliases.json), and the cd-signal file so directory changes
         in the linked terminal propagate as expected.
 
         Two launch modes:
@@ -814,6 +839,33 @@ class VoxtermApp(rumps.App):
             we point the user at running the open-source CLI alongside.
         """
         _open_linked_terminal()
+
+    def _on_copy_cli_command(self, _sender=None):
+        """
+        Copy a shell alias to the clipboard so the user can paste it into
+        ANY terminal window they already have open (not just an auto-spawned
+        one) and get `voxterm` as a working command there.
+        """
+        import subprocess
+        is_frozen = getattr(sys, "frozen", False)
+        if is_frozen:
+            bin_path = sys.executable
+            alias_line = f"alias voxterm='{bin_path} --cli'"
+        else:
+            python_bin = sys.executable
+            main_py = Path(__file__).resolve().parent / "voxterm" / "main.py"
+            alias_line = f"alias voxterm='{python_bin} -m voxterm.main'"
+
+        try:
+            proc = subprocess.Popen(["pbcopy"], stdin=subprocess.PIPE)
+            proc.communicate(alias_line.encode())
+            _notify(
+                "VoxTerm",
+                "Alias copied to clipboard — paste it into any terminal window, "
+                "then type `voxterm` there whenever you want.",
+            )
+        except Exception as exc:  # noqa: BLE001
+            _alert_error("VoxTerm — couldn't copy", str(exc))
 
     # ── Global hotkey ──────────────────────────────────────────────────────
 
@@ -852,11 +904,22 @@ class VoxtermApp(rumps.App):
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
+    # --cli lets the SAME frozen binary act as the interactive CLI (Rich UI,
+    # full output, one listen cycle per invocation) instead of becoming the
+    # menu bar app. This is what makes "Open in Terminal…" and the auto-linked
+    # terminal work from a shipped .app — there's no separate CLI binary
+    # bundled, so the GUI binary re-invokes itself with this flag.
+    if "--cli" in sys.argv:
+        sys.argv.remove("--cli")
+        from voxterm.main import cli as _voxterm_cli
+        _voxterm_cli()
+        sys.exit(0)
+
     _acquire_single_instance_lock()
 
     # Init DB lazily in a thread so it doesn't delay the icon appearing.
     def _init_db_background():
-        from history import init as init_db
+        from voxterm.history import init as init_db
         init_db()
 
     threading.Thread(target=_init_db_background, daemon=True).start()

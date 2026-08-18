@@ -1,8 +1,8 @@
 """
 history.py — SQLite command history
 
-Logs every executed command to data/history.db.
-The database is gitignored — user's command history never leaves their machine.
+Logs every executed command to ~/.voxterm/history.db.
+The database is local-only — user's command history never leaves their machine.
 
 Schema:
   id        — auto-increment primary key
@@ -18,7 +18,7 @@ import sqlite3
 from datetime import datetime
 from pathlib import Path
 
-DB_PATH = Path(__file__).parent / "data" / "history.db"
+DB_PATH = Path.home() / ".voxterm" / "history.db"
 _MAX_OUTPUT_LEN = 2000  # truncate long outputs before storing
 
 

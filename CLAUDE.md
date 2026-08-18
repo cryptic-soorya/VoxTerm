@@ -19,31 +19,34 @@ This project uses **zero paid services**. The LLM layer has two modes:
 | Mode | Tool | Cost | Requires |
 |------|------|------|----------|
 | Default (offline) | Ollama + Mistral/Llama3 | Free forever | Ollama installed locally |
-| Fallback (free cloud) | Google Gemini 1.5 Flash | Free tier: 1500 req/day | Google account, free API key |
+| Fallback (free cloud) | Google Gemini 2.0 Flash | Free tier: 1500 req/day | Google account, free API key |
 
 There is no Anthropic/OpenAI API key anywhere in this project. If you see one, remove it.
 
 **Why Gemini and not others?**
-- Gemini 1.5 Flash free tier is genuinely generous (1500 requests/day, no credit card)
+- Gemini Flash free tier is genuinely generous (1500 requests/day, no credit card)
 - Google AI Studio issues free keys instantly at aistudio.google.com
-- The `google-generativeai` Python SDK is simple and well-maintained
+- The `google-genai` Python SDK (the new one — `google-generativeai` is deprecated) is simple and well-maintained
 - Gemini follows structured JSON instructions reliably
 
 ---
 
 ## Project status
 
-- [ ] Phase 1: audio capture + transcription (audio.py + transcribe.py)
-- [ ] Phase 2: LLM translation + JSON parsing (translate.py)
-- [ ] Phase 3: safety gate + confirmation UI (safety.py)
-- [ ] Phase 4: execution + output capture (executor.py)
-- [ ] Phase 5: history logging (history.py)
-- [ ] Phase 6: undo stack (undo.py)
-- [ ] Phase 7: Rich terminal UI polish (ui.py)
-- [ ] Phase 8: alias learning system (aliases.py)
-- [ ] Phase 9: plugin system (plugins/)
-- [ ] Phase 10: CLI flags via Click (main.py)
-- [ ] Phase 11: README + demo GIF + GitHub release
+- [x] Phase 1: audio capture + transcription (audio.py + transcribe.py)
+- [x] Phase 2: LLM translation + JSON parsing (translate.py)
+- [x] Phase 3: safety gate + confirmation UI (safety.py)
+- [x] Phase 4: execution + output capture (executor.py)
+- [x] Phase 5: history logging (history.py)
+- [x] Phase 6: undo stack (undo.py)
+- [x] Phase 7: Rich terminal UI polish (ui.py)
+- [x] Phase 8: alias learning system (aliases.py)
+- [x] Phase 9: plugin system (plugins/)
+- [x] Phase 10: CLI flags via Click (main.py)
+- [ ] Phase 11: README + demo GIF + GitHub release (README done; demo GIF + release pending)
+- [x] Phase 12: distribution (app_gui.py, PyInstaller, DMG, website)
+- [x] Phase 13: intelligence upgrades (history RAG, clarifications, filesystem context, …)
+- [x] Phase 14: pip packaging — code moved into `voxterm/` package, `pyproject.toml`, `voxterm` console script
 
 Update this checklist as phases are completed.
 
@@ -51,34 +54,46 @@ Update this checklist as phases are completed.
 
 ## Folder structure
 
+As of Phase 14, all source code lives in the `voxterm/` package (installable via `pip install -e .`; console script `voxterm` → `voxterm.main:cli`). User data lives in `~/.voxterm/`, not in the repo.
+
 ```
-voxterm/
-├── main.py              ← entry point, wires everything together, Click CLI
-├── audio.py             ← mic recording + WebRTCVAD silence detection
-├── transcribe.py        ← faster-whisper model wrapper (local inference)
-├── translate.py         ← LLM call (Ollama primary, Gemini fallback), JSON parsing
-├── safety.py            ← risk gate logic, confirmation UI, hard overrides
-├── executor.py          ← subprocess runner, output capture, dry-run mode
-├── history.py           ← SQLite read/write for command history
-├── undo.py              ← undo stack: stores inverse commands for reversible ops
-├── aliases.py           ← alias learning: detects repeated requests, saves shortcuts
-├── context.py           ← system context: cwd, username, OS version, shell type
-├── ui.py                ← Rich terminal display: panels, colors, spinners, prompts
-├── prompts/
-│   └── system.txt       ← the LLM system prompt (edit this to tune behaviour)
-├── plugins/
-│   ├── README.md        ← how to write a plugin
-│   └── example.py      ← example plugin
-├── data/
-│   ├── history.db       ← SQLite database (auto-created, gitignored)
-│   └── aliases.json     ← saved aliases (gitignored)
-├── requirements.txt
-├── .env.example         ← GEMINI_API_KEY placeholder (optional, for cloud fallback)
-├── .gitignore
-├── CLAUDE.md            ← this file
-├── PLAN.md              ← architecture, decisions, and build roadmap
-└── README.md            ← public-facing docs with demo GIF at top
+terminaltalker/              ← repo root
+├── voxterm/                 ← the Python package
+│   ├── __init__.py          ← package docstring + __version__
+│   ├── main.py              ← entry point, wires everything together, Click CLI
+│   ├── audio.py             ← mic recording + WebRTCVAD silence detection
+│   ├── transcribe.py        ← faster-whisper model wrapper (local inference)
+│   ├── translate.py         ← LLM call (Ollama primary, Gemini fallback), JSON parsing
+│   ├── safety.py            ← risk gate logic, confirmation UI, hard overrides (_FORCE_HIGH)
+│   ├── executor.py          ← subprocess runner, output capture, dry-run mode
+│   ├── history.py           ← SQLite read/write for command history
+│   ├── undo.py              ← undo stack: stores inverse commands for reversible ops
+│   ├── aliases.py           ← alias learning: detects repeated requests, saves shortcuts
+│   ├── context.py           ← system context: cwd, username, OS version, shell type
+│   ├── ui.py                ← Rich terminal display: panels, colors, spinners, prompts
+│   ├── prompts/
+│   │   └── system.txt       ← the LLM system prompt (edit this to tune behaviour)
+│   └── plugins/
+│       └── example.py       ← example plugin
+├── app_gui.py               ← rumps menu bar app (GUI entry point, PyInstaller target)
+├── voxterm.sh               ← shell wrapper sourced by the linked-terminal feature
+├── voxterm.spec             ← PyInstaller config
+├── build.sh                 ← PyInstaller → create-dmg build script
+├── pyproject.toml           ← packaging metadata, deps, console script
+├── setup.cfg                ← per-tool config (pytest, flake8)
+├── requirements.txt         ← pinned deps for dev installs
+├── assets/                  ← icon.icns, dmg-background.png
+├── website/                 ← React landing page (Vite + Tailwind)
+├── LICENSE                  ← MIT
+├── CLAUDE.md / PLAN.md      ← project docs (gitignored)
+└── README.md                ← public-facing docs
+
+~/.voxterm/                  ← user data (created at runtime)
+├── history.db               ← SQLite command history
+└── aliases.json             ← saved aliases
 ```
+
+Imports inside the package are relative (`from .history import recent`). Entry points from outside the package (app_gui.py, `__main__` smoke tests) use absolute `voxterm.` imports. Run the CLI as `voxterm` (installed) or `python -m voxterm.main`.
 
 ---
 
@@ -91,7 +106,7 @@ voxterm/
 | WebRTCVAD | Voice activity detection | Google's VAD library, accurate and fast |
 | faster-whisper | Transcription | 4x faster than openai-whisper, CTranslate2 backend optimised for Apple Silicon |
 | Ollama | LLM inference (primary) | Runs Mistral/Llama3 locally, free forever, no internet needed |
-| google-generativeai | LLM inference (fallback) | Gemini 1.5 Flash free tier, 1500 req/day, no payment required |
+| google-genai | LLM inference (fallback) | Gemini 2.0 Flash free tier, 1500 req/day, no payment required |
 | subprocess | Shell execution | Python built-in, captures stdout/stderr |
 | SQLite3 | History storage | Built into Python, zero setup, local |
 | Rich | Terminal UI | Beautiful output, panels, spinners, colors |
@@ -232,7 +247,7 @@ voxterm alias save <name>  ← save last command as alias
 Privacy. Your terminal commands reveal a lot about your project structure, file names, and workflow. Keeping that local by default is the right call. Gemini only sees your commands if Ollama isn't available.
 
 **Why Gemini over other free options?**
-Gemini 1.5 Flash free tier is the most generous free LLM API available right now — 1500 requests/day, no credit card, instant key from aistudio.google.com. Groq is also free but rate-limited more aggressively. Gemini follows JSON instructions very reliably.
+Gemini 2.0 Flash free tier is the most generous free LLM API available right now — 1500 requests/day, no credit card, instant key from aistudio.google.com. Groq is also free but rate-limited more aggressively. Gemini follows JSON instructions very reliably.
 
 **Why faster-whisper instead of openai-whisper?**
 faster-whisper uses CTranslate2 as its inference backend, optimised for CPU and Apple Silicon. Runs the same Whisper models 2-4x faster with less memory. On an M4 MacBook, the base model transcribes a 5-second clip in ~0.4 seconds.
@@ -252,7 +267,7 @@ So you can tweak LLM behaviour without touching Python code. Changing how risk i
 
 - Never run subprocess commands without the safety gate having approved them first
 - The `.env` file must be in `.gitignore` — GEMINI_API_KEY must never be committed
-- `data/` directory must be gitignored — it contains user history and aliases
+- User data (history.db, aliases.json) lives in `~/.voxterm/` — never in the repo
 - The undo stack is in-memory only — do not persist it to disk (too risky)
 - Test all new executor logic with `--dry-run` first
 - When calling Gemini, explicitly set `response_mime_type="application/json"` — this forces JSON output without fences
@@ -262,23 +277,25 @@ So you can tweak LLM behaviour without touching Python code. Changing how risk i
 ## How to run (once built)
 
 ```bash
-cd voxterm
-python -m venv venv
+python3 -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
+pip install -e ".[all]"      # editable install with GUI + hotkey extras
 
 # Option A: fully offline (install Ollama first from ollama.com)
-ollama pull mistral
-python main.py
+ollama pull llama3.2:3b
+voxterm
 
 # Option B: free cloud fallback (get free key from aistudio.google.com)
 cp .env.example .env   # add your GEMINI_API_KEY
-python main.py
+voxterm
 
 # Other modes
-python main.py --dry-run     # safe demo mode
-python main.py --offline     # force Ollama
-python main.py --cloud       # force Gemini
+voxterm --dry-run     # safe demo mode
+voxterm --offline     # force Ollama
+voxterm --cloud       # force Gemini
+voxterm shell-setup   # print the cd shell wrapper (append to ~/.zshrc)
+
+# Equivalent without the console script: python -m voxterm.main
 ```
 
 ---
@@ -287,7 +304,7 @@ python main.py --cloud       # force Gemini
 
 ```
 GEMINI_API_KEY=your_free_key_from_aistudio.google.com
-OLLAMA_MODEL=mistral          # or llama3, phi3, gemma2 etc.
+OLLAMA_MODEL=llama3.2:3b      # or mistral, phi3, gemma2 etc. (default: llama3.2:3b)
 WHISPER_MODEL=base            # tiny | base | small | medium
 VOCTERM_CONFIRM_TIMEOUT=30    # seconds before medium-risk auto-cancels
 ```
@@ -308,8 +325,6 @@ GEMINI_API_KEY is optional — only needed if you want the cloud fallback when O
 | `assets/icon.icns` | app icon in macOS format |
 | `assets/dmg-background.png` | background image shown in the DMG installer window |
 | `website/` | React landing page (Vite + Tailwind + Framer Motion) — replaces the static `docs/index.html` approach |
-| `assets/icon.icns` | app icon in macOS format |
-| `assets/dmg-background.png` | background image shown in the DMG installer window |
 
 **New dependencies:**
 ```
@@ -319,7 +334,7 @@ pyinstaller==6.5.0  # app bundler
 create-dmg is installed via Homebrew, not pip.
 
 **Two entry points:**
-- `python main.py` — CLI mode for developers
+- `voxterm` (or `python -m voxterm.main`) — CLI mode for developers
 - `python app_gui.py` — GUI mode (menu bar app), used by PyInstaller
 Both use the same backend. app_gui.py is just a different shell on top.
 

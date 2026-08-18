@@ -23,20 +23,20 @@ import click
 
 import os
 
-import ui
-from audio import record_until_silence
-from transcribe import transcribe
-from translate import (
+from . import ui
+from .audio import record_until_silence
+from .transcribe import transcribe
+from .translate import (
     translate, check_plugins,
     is_explain_request, explain_last_command,
     is_summarise_request, summarise_output, diagnose_error,
 )
-from context import get_context
-from safety import confirm, final_risk
-from executor import run, run_steps, _CD_SIGNAL_FILE
-from history import init as init_db, log, recent, recent_full
-from undo import push as push_undo, pop as pop_undo, can_undo
-from aliases import match as match_alias, check_for_repeat, save as save_alias, load as load_aliases, delete as delete_alias
+from .context import get_context
+from .safety import confirm, final_risk
+from .executor import run, run_steps, _CD_SIGNAL_FILE
+from .history import init as init_db, log, recent, recent_full
+from .undo import push as push_undo, pop as pop_undo, can_undo
+from .aliases import match as match_alias, check_for_repeat, save as save_alias, load as load_aliases, delete as delete_alias
 
 
 # ---------------------------------------------------------------------------
@@ -312,6 +312,33 @@ def alias_delete(name):
         ui.console.print(f"\n  [grey46]deleted alias[/grey46] [grey93]{name}[/grey93]\n")
     else:
         ui.show_error(f"no alias named '{name}'")
+
+
+_SHELL_WRAPPER = '''\
+# voxterm shell wrapper — enables `cd` to work across commands.
+# Add to ~/.zshrc with: voxterm shell-setup >> ~/.zshrc
+_VOXTERM_CD_FILE="${${TMPDIR:-/tmp}%/}/.voxterm_cd"
+
+voxterm() {
+    VOXTERM_SHELL_WRAPPER=1 command voxterm "$@"
+    if [[ -f "$_VOXTERM_CD_FILE" ]]; then
+        local _target
+        _target="$(<"$_VOXTERM_CD_FILE")"
+        rm -f "$_VOXTERM_CD_FILE"
+        if [[ "$_target" == /* && -d "$_target" && "$_target" != *..* ]]; then
+            cd "$_target"
+        fi
+    fi
+}
+
+vt() { voxterm "$@"; }
+'''
+
+
+@cli.command(name="shell-setup")
+def shell_setup():
+    """Print the shell wrapper to stdout. Run: voxterm shell-setup >> ~/.zshrc"""
+    click.echo(_SHELL_WRAPPER)
 
 
 # ---------------------------------------------------------------------------

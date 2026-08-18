@@ -21,7 +21,7 @@ voxterm() {
     # Use $VOXTERM_PYTHON if set (the menu bar app exports it when it spawns a
     # linked terminal so we run inside its venv with all deps available).
     local _vt_py="${VOXTERM_PYTHON:-python}"
-    VOXTERM_SHELL_WRAPPER=1 "$_vt_py" "$_VOXTERM_DIR/main.py" "$@"
+    VOXTERM_SHELL_WRAPPER=1 PYTHONPATH="$_VOXTERM_DIR${PYTHONPATH:+:$PYTHONPATH}" "$_vt_py" -m voxterm.main "$@"
     if [[ -f "$_VOXTERM_CD_FILE" ]]; then
         local _target
         _target="$(<"$_VOXTERM_CD_FILE")"

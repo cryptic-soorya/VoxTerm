@@ -185,7 +185,7 @@ def build_user_message(transcript: str, context: str) -> str:
     Includes environment context + last 7 commands from history so the LLM
     can handle references like "do that again" or "same but for ~/Desktop".
     """
-    from history import recent  # local import to avoid circular dependency at module load
+    from .history import recent  # local import to avoid circular dependency at module load
     rows = recent(7)
 
     if rows:
@@ -214,15 +214,47 @@ def build_user_message(transcript: str, context: str) -> str:
 # Ollama backend
 # ---------------------------------------------------------------------------
 
+# JSON schema passed to Ollama's structured-output mode ("format"). The
+# server constrains generation to match, so nested quotes in shell commands
+# get escaped correctly — small models produce broken JSON without this.
+_RESPONSE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "command":         {"type": ["string", "null"]},
+        "steps":           {"type": ["array", "null"], "items": {"type": "string"}},
+        "risk":            {"type": "string", "enum": ["low", "medium", "high"]},
+        "explanation":     {"type": "string"},
+        "destructive":     {"type": "boolean"},
+        "inverse_command": {"type": ["string", "null"]},
+        "clarification":   {"type": ["string", "null"]},
+    },
+    "required": ["command", "steps", "risk", "explanation",
+                 "destructive", "inverse_command", "clarification"],
+}
+
+
+def _ollama_generate(payload: dict) -> tuple[dict | None, dict | None]:
+    """POST to Ollama. Returns (data, None) on success, (None, error_dict) on failure."""
+    try:
+        response = requests.post(_OLLAMA_GENERATE_URL, json=payload, timeout=_OLLAMA_TIMEOUT)
+        response.raise_for_status()
+        return response.json(), None
+    except requests.exceptions.ConnectionError:
+        return None, {"error": "Ollama is not running. Start it with: ollama serve"}
+    except requests.exceptions.Timeout:
+        return None, {"error": f"Ollama timed out after {_OLLAMA_TIMEOUT}s. Is the model loaded?"}
+    except requests.exceptions.HTTPError as exc:
+        return None, {"error": f"Ollama HTTP error: {exc}"}
+
+
 def translate_ollama(transcript: str, context: str) -> dict:
     """
     Send transcript + context to the local Ollama model.
 
-    Uses Ollama's built-in JSON mode (`"format": "json"`) for extra
-    reliability. stream=False waits for the complete response.
-
-    Raises:
-        requests.exceptions.RequestException: if Ollama is not reachable.
+    Uses Ollama's structured-output mode ("format" = JSON schema) so the
+    server guarantees a schema-valid JSON response — without this, small
+    models wrap the JSON in prose or emit unescaped quotes inside command
+    strings. stream=False waits for the complete response.
     """
     user_message = build_user_message(transcript, context)
     full_prompt = f"{_SYSTEM_PROMPT}\n\n{user_message}"
@@ -230,36 +262,29 @@ def translate_ollama(transcript: str, context: str) -> dict:
         "model": OLLAMA_MODEL,
         "prompt": full_prompt,
         "stream": False,
-        # NOTE: "format": "json" is intentionally omitted. Thinking models
-        # like qwen3 route all output into the "thinking" key when format:json
-        # is set, leaving "response" empty. We rely on _parse_json() to strip
-        # any markdown fences the model adds instead.
+        "format": _RESPONSE_SCHEMA,
     }
-    try:
-        response = requests.post(_OLLAMA_GENERATE_URL, json=payload, timeout=_OLLAMA_TIMEOUT)
-        response.raise_for_status()
-    except requests.exceptions.ConnectionError:
-        return {"error": "Ollama is not running. Start it with: ollama serve"}
-    except requests.exceptions.Timeout:
-        return {"error": f"Ollama timed out after {_OLLAMA_TIMEOUT}s. Is the model loaded?"}
-    except requests.exceptions.HTTPError as exc:
-        return {"error": f"Ollama HTTP error: {exc}"}
+    data, err = _ollama_generate(payload)
+    if err:
+        return err
 
-    data = response.json()
     raw = data.get("response", "").strip()
 
-    # Thinking models (qwen3, deepseek-r1, etc.) expose a separate "thinking"
-    # key. When the response is empty, the useful JSON is in "thinking" — but
-    # that field contains the model's reasoning prose, not clean JSON. Instead
-    # of parsing prose, instruct the model more explicitly via the prompt.
-    # If response is truly empty after a successful call, return a clear error.
+    # Thinking models (qwen3, deepseek-r1, etc.) sometimes route all output
+    # into the separate "thinking" key when format is constrained, leaving
+    # "response" empty. Retry once with thinking disabled.
+    if not raw and data.get("thinking"):
+        data, err = _ollama_generate({**payload, "think": False})
+        if err:
+            return err
+        raw = data.get("response", "").strip()
+
     if not raw:
-        thinking_preview = data.get("thinking", "")[:200]
         return {
             "error": (
                 f"Model '{OLLAMA_MODEL}' returned an empty response. "
-                "If this is a thinking model (qwen3, deepseek-r1), it may need "
-                "a different prompt format. Thinking preview: " + thinking_preview
+                "Try a different model: ollama pull llama3.2:3b, then set "
+                "OLLAMA_MODEL=llama3.2:3b in .env"
             )
         }
 
@@ -520,7 +545,7 @@ def check_plugins(transcript: str) -> str | None:
         trigger = getattr(mod, "TRIGGER", None)
         if trigger and trigger.lower() in transcript_lower:
             try:
-                from context import get_context_dict
+                from .context import get_context_dict
                 return mod.run(get_context_dict())
             except Exception:
                 return None  # plugin run() failed — fall through to LLM
@@ -571,7 +596,7 @@ def translate(
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
     import sys
-    from context import get_context
+    from voxterm.context import get_context
 
     ctx = get_context()
     print("Context:")

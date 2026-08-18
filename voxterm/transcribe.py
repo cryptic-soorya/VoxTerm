@@ -160,7 +160,7 @@ if __name__ == "__main__":
         print()
         # Try to record from mic if audio.py is available
         try:
-            from audio import record_until_silence
+            from voxterm.audio import record_until_silence
             print("Recording from mic (speak now)...")
             wav_path = record_until_silence()
             print("Transcribing...")

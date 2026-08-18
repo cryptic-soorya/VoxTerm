@@ -8,13 +8,13 @@ Two jobs:
                          True when the same intent has appeared 3+ times,
                          triggering an offer to save it as an alias
 
-Aliases are stored in data/aliases.json — gitignored, local to the user.
+Aliases are stored in ~/.voxterm/aliases.json — local to the user.
 """
 
 import json
 from pathlib import Path
 
-ALIASES_PATH = Path(__file__).parent / "data" / "aliases.json"
+ALIASES_PATH = Path.home() / ".voxterm" / "aliases.json"
 
 
 def load() -> dict[str, str]:
@@ -28,7 +28,7 @@ def load() -> dict[str, str]:
 
 
 def save(name: str, command: str):
-    """Add or overwrite an alias. Creates data/ if it doesn't exist."""
+    """Add or overwrite an alias. Creates ~/.voxterm/ if it doesn't exist."""
     aliases = load()
     aliases[name.strip().lower()] = command
     ALIASES_PATH.parent.mkdir(exist_ok=True)
@@ -72,7 +72,7 @@ def check_for_repeat(transcript: str) -> bool:
     identify the intent without being too strict about exact wording).
     """
     try:
-        from history import recent
+        from .history import recent
         rows = recent(50)
     except Exception:
         return False
@@ -101,7 +101,7 @@ if __name__ == "__main__":
 
     # Redirect to a temp file so tests don't touch real aliases
     orig_path = ALIASES_PATH
-    import aliases as _self
+    import voxterm.aliases as _self
     tmp = tempfile.NamedTemporaryFile(suffix=".json", delete=False)
     tmp.close()
     _self.ALIASES_PATH = Path(tmp.name)

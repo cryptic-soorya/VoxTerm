@@ -19,6 +19,9 @@ ROOT = Path(SPECPATH)   # directory containing this .spec file
 # in numpy 2.x and ctranslate2 without this.
 numpy_datas, numpy_binaries, numpy_hiddenimports = collect_all('numpy')
 ct2_datas, ct2_binaries, ct2_hiddenimports = collect_all('ctranslate2')
+# faster_whisper ships silero_vad_v6.onnx in its assets/ dir — must be collected
+# explicitly or the bundled app throws ONNXRuntimeError: NO_SUCH_FILE at startup.
+fw_datas, fw_binaries, fw_hiddenimports = collect_all('faster_whisper')
 
 # ---------------------------------------------------------------------------
 # Version — bump this before each release
@@ -35,20 +38,22 @@ a = Analysis(
     # Add any extra source search paths here if needed.
     pathex=[str(ROOT)],
 
-    binaries=[] + numpy_binaries + ct2_binaries,
+    binaries=[] + numpy_binaries + ct2_binaries + fw_binaries,
 
     # Non-Python files that must be present inside the .app bundle.
     # Each tuple is (source_path_or_glob, destination_folder_inside_bundle).
     datas=[
-        # LLM system prompt — editable without recompiling
-        (str(ROOT / "prompts" / "system.txt"), "prompts"),
+        # LLM system prompt — editable without recompiling.
+        # Destination mirrors the package layout because translate.py resolves
+        # these via Path(__file__).parent, i.e. <bundle>/voxterm/prompts.
+        (str(ROOT / "voxterm" / "prompts" / "system.txt"), "voxterm/prompts"),
 
         # Plugin directory (Python files loaded at runtime via importlib)
-        (str(ROOT / "plugins"),               "plugins"),
+        (str(ROOT / "voxterm" / "plugins"),   "voxterm/plugins"),
 
         # App icon (used by the macOS Dock / Finder if LSUIElement is removed)
         (str(ROOT / "assets" / "icon.icns"),  "assets"),
-    ] + numpy_datas + ct2_datas,
+    ] + numpy_datas + ct2_datas + fw_datas,
 
     # Modules that PyInstaller's static analyser misses (dynamic imports,
     # optional backends, rumps internals, etc.).
@@ -57,7 +62,7 @@ a = Analysis(
         "ctranslate2",
         "ctranslate2.specs",
         "faster_whisper",
-    ] + numpy_hiddenimports + ct2_hiddenimports + [
+    ] + numpy_hiddenimports + ct2_hiddenimports + fw_hiddenimports + [
 
         # google-genai (new SDK, replaces deprecated google-generativeai)
         "google.genai",
@@ -77,6 +82,11 @@ a = Analysis(
 
         # dotenv
         "dotenv",
+
+        # voxterm.main is only imported conditionally (--cli dispatch in
+        # app_gui.py), which PyInstaller's static analysis can miss.
+        "click",
+        "voxterm.main",
     ],
 
     hookspath=["hooks"],   # custom hooks override contrib (e.g. webrtcvad-wheels fix)
