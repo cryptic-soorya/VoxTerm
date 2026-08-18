@@ -66,6 +66,13 @@ VoxTerm auto-detects which backend to use — Ollama if it's running, Gemini if 
 
 ## Install
 
+**Using the `.app` DMG?** VoxTerm isn't code-signed or notarized by Apple (that requires a paid Apple Developer account), so Gatekeeper will show *"VoxTerm Not Opened"* on first launch. This isn't malware — just right-click the app → **Open** → **Open** again, or run:
+```bash
+xattr -dr com.apple.quarantine /Applications/VoxTerm.app
+```
+
+**Using pip?**
+
 ```bash
 brew install portaudio
 pip install voxterm

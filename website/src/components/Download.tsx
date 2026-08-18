@@ -104,7 +104,12 @@ export default function Download() {
               <DownloadIcon size={16} />
               Download VoxTerm
             </motion.a>
-            <p className="text-[12px] text-muted">v1.0.0 · Requires Ollama or free Gemini key</p>
+            <p className="text-[12px] text-muted mb-2">v1.0.0 · Requires Ollama or free Gemini key</p>
+            <p className="text-[12px] text-muted2 max-w-[420px] mx-auto leading-relaxed">
+              macOS will say the app "cannot be opened" — it's unsigned, not malware.
+              Right-click the app → Open, then click Open again. Or run{' '}
+              <code className="text-cyan">xattr -dr com.apple.quarantine /Applications/VoxTerm.app</code> in Terminal.
+            </p>
           </div>
 
           {/* Tabs */}
