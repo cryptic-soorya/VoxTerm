@@ -9,6 +9,8 @@
 [![Platform](https://img.shields.io/badge/platform-macOS%20%28Apple%20Silicon%29-lightgrey)](https://www.apple.com/mac/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Cost](https://img.shields.io/badge/cost-completely%20free-brightgreen)](https://ollama.com)
+[![GitHub stars](https://img.shields.io/github/stars/cryptic-soorya/VoxTerm?style=flat&color=yellow)](https://github.com/cryptic-soorya/VoxTerm/stargazers)
+[![Downloads](https://img.shields.io/github/downloads/cryptic-soorya/VoxTerm/total?label=DMG%20downloads&color=orange)](https://github.com/cryptic-soorya/VoxTerm/releases)
 
 <!-- demo GIF goes here — record with Kap or asciinema, save as demo.gif, then uncomment: -->
 <!-- ![VoxTerm demo](demo.gif) -->
