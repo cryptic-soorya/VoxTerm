@@ -50,6 +50,7 @@ function FeatureCard({ icon: Icon, title, desc, delay }: { icon: LucideIcon; tit
   )
 }
 
+
 export default function Features() {
   return (
     <section className="py-32 px-6 bg-surface">
