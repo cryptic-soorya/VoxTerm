@@ -19,7 +19,7 @@
     position: relative;
   }
 
-  /* Subtle film grain — keeps large flat dark areas from feeling flat/AI-generated */
+  /* Subtle film grain — keeps large flat dark areas from feeling flat */
   body::before {
     content: '';
     position: fixed;
