@@ -7,10 +7,12 @@ import Privacy from './components/Privacy'
 import Safety from './components/Safety'
 import Download from './components/Download'
 import Footer from './components/Footer'
+import StarModal from './components/StarModal'
 
 export default function App() {
   return (
     <div className="min-h-screen bg-bg text-white">
+      <StarModal />
       <Nav />
       <Hero />
       <Problem />
