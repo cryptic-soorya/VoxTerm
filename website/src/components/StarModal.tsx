@@ -2,20 +2,22 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import { Star, X } from 'lucide-react'
 
-const STORAGE_KEY = 'voxterm-star-prompt-seen'
+const SESSION_KEY = 'voxterm-star-prompt-session'
 
 export default function StarModal() {
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
-    if (localStorage.getItem(STORAGE_KEY)) return
+    // Shows once per browser session (tab) rather than a permanent
+    // dismissal, so it greets returning visitors again on their next visit.
+    if (sessionStorage.getItem(SESSION_KEY)) return
     const t = setTimeout(() => setOpen(true), 1200)
     return () => clearTimeout(t)
   }, [])
 
   const close = () => {
     setOpen(false)
-    localStorage.setItem(STORAGE_KEY, '1')
+    sessionStorage.setItem(SESSION_KEY, '1')
   }
 
   return (
@@ -53,13 +55,14 @@ export default function StarModal() {
             </div>
 
             <h2 className="text-[18px] font-bold text-white mb-2">
-              Hey, I'm a student building this solo
+              Hi, I'm a student building this alone
             </h2>
 
             <p className="text-[14px] leading-relaxed text-muted mb-5">
-              VoxTerm is a side project I built and maintain on my own. If it's useful to you,
-              a GitHub star genuinely helps — it's the main way recruiters and other developers
-              find and trust student projects like this. Costs nothing, takes two seconds.
+              I care a lot about privacy, which is why VoxTerm runs entirely on your machine —
+              no accounts, no tracking, nothing sent anywhere. If it's useful to you, a star on
+              GitHub would mean a lot. It costs nothing and genuinely helps a student project
+              like this get noticed. No pressure either way, and thank you for trying it.
             </p>
 
             <div className="flex items-center gap-3">
