@@ -16,7 +16,7 @@ const DEMOS = [
     cmd: 'git push origin main',
     expl: 'push commits to remote',
     risk: 'medium' as const,
-    output: ['Enumerating objects: 5, done.', 'Writing objects: 100% (3/3)', 'To github.com:soorya/voxterm.git', '   a3f1c2b..d4e9f01  main → main'],
+    output: ['Enumerating objects: 5, done.', 'Writing objects: 100% (3/3)', 'To github.com:cryptic-soorya/VoxTerm.git', '   a3f1c2b..d4e9f01  main → main'],
   },
   {
     said: 'find large files over 100MB',
@@ -27,7 +27,7 @@ const DEMOS = [
   },
 ]
 
-const RISK_COLOR = { low: '#34d399', medium: '#fcd34d', high: '#f87171' }
+const RISK_COLOR = { low: '#2dd4a7', medium: '#fbbf24', high: '#fb7185' }
 const SPINNERS = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
 const WAVE_DELAYS = [0, 0.1, 0.2, 0.3, 0.15, 0.25, 0.05, 0.35]
 
@@ -74,8 +74,8 @@ export default function TerminalMockup() {
       <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-accent/40 via-cyan/10 to-transparent -z-[1]" />
 
       <motion.div
-        className="relative rounded-2xl overflow-hidden border border-white/[0.06]"
-        style={{ background: 'rgba(13,13,26,0.92)', backdropFilter: 'blur(20px)' }}
+        className="relative rounded-2xl overflow-hidden border border-white/[0.06] shadow-glow-accent"
+        style={{ background: 'rgba(19,18,17,0.92)', backdropFilter: 'blur(20px)' }}
         whileHover={{ y: -2 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
       >
@@ -157,7 +157,7 @@ export default function TerminalMockup() {
                       style={{ color: RISK_COLOR[demo.risk] }}>
                       {demo.risk} risk · command to run
                     </div>
-                    <div style={{ color: '#67e8f9' }}>{demo.cmd}</div>
+                    <div style={{ color: '#5eb1ff' }}>{demo.cmd}</div>
                     <div className="text-muted text-[11px] mt-1">{demo.expl}</div>
 
                     {/* Confirm prompt for medium */}
@@ -179,7 +179,7 @@ export default function TerminalMockup() {
                     initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: demo.risk === 'low' ? 0 : 0.5, ease: [0.16, 1, 0.3, 1] }}
                     className="rounded-lg border border-emerald/30 p-3"
-                    style={{ background: 'rgba(52,211,153,0.05)' }}
+                    style={{ background: 'rgba(45,212,167,0.05)' }}
                   >
                     <div className="text-[10px] font-semibold text-emerald mb-1.5 uppercase tracking-wider">output</div>
                     {demo.output.map((line, i) => (

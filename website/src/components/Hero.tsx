@@ -19,7 +19,7 @@ export default function Hero() {
       {/* Grid lines */}
       <div className="absolute inset-0 opacity-[0.025]"
         style={{
-          backgroundImage: 'linear-gradient(rgba(167,139,250,1) 1px, transparent 1px), linear-gradient(90deg, rgba(167,139,250,1) 1px, transparent 1px)',
+          backgroundImage: 'linear-gradient(rgba(242,176,99,1) 1px, transparent 1px), linear-gradient(90deg, rgba(242,176,99,1) 1px, transparent 1px)',
           backgroundSize: '80px 80px',
         }}
       />
@@ -64,7 +64,7 @@ export default function Hero() {
           <motion.a
             href="#download"
             className="flex items-center gap-2 px-7 py-3.5 bg-accent text-white text-[15px] font-bold rounded-xl"
-            whileHover={{ scale: 1.04, backgroundColor: '#9d5cff', boxShadow: '0 8px 40px rgba(124,58,237,0.45)' }}
+            whileHover={{ scale: 1.04, backgroundColor: '#ff8a5c', boxShadow: '0 8px 40px rgba(255,77,46,0.4)' }}
             whileTap={{ scale: 0.97 }}
             transition={{ type: 'spring', stiffness: 400, damping: 22 }}
           >
@@ -75,7 +75,7 @@ export default function Hero() {
             href="https://github.com/cryptic-soorya/VoxTerm"
             target="_blank"
             className="flex items-center gap-2 px-6 py-3.5 border border-white/[0.08] text-muted text-[15px] font-medium rounded-xl"
-            whileHover={{ borderColor: 'rgba(255,255,255,0.2)', color: '#f0f0f8', scale: 1.02 }}
+            whileHover={{ borderColor: 'rgba(255,255,255,0.2)', color: '#f2f1ed', scale: 1.02 }}
             whileTap={{ scale: 0.97 }}
             transition={{ type: 'spring', stiffness: 400, damping: 22 }}
           >

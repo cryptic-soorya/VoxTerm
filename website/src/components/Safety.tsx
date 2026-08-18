@@ -3,21 +3,21 @@ import { fadeUp, stagger, viewportOnce } from '../lib/animations'
 
 const RISKS = [
   {
-    level: 'low', color: '#34d399', bg: 'rgba(52,211,153,0.05)', border: 'rgba(52,211,153,0.2)',
+    level: 'low', color: '#2dd4a7', bg: 'rgba(45,212,167,0.05)', border: 'rgba(45,212,167,0.2)',
     title: 'Runs immediately',
     desc: 'Read-only commands run without prompting. You asked, it runs. Zero friction for safe operations.',
     examples: ['ls -la ~/Downloads', 'git status', 'cat README.md'],
     action: null,
   },
   {
-    level: 'medium', color: '#fcd34d', bg: 'rgba(252,211,77,0.05)', border: 'rgba(252,211,77,0.2)',
+    level: 'medium', color: '#fbbf24', bg: 'rgba(251,191,36,0.05)', border: 'rgba(251,191,36,0.2)',
     title: 'Shows command, asks Y/n',
     desc: 'File moves, installs, git pushes — shown in full with a plain-English explanation. One keypress.',
     examples: ['git push origin main', 'npm install lodash', 'mkdir -p src/components'],
     action: 'Y/n',
   },
   {
-    level: 'high', color: '#f87171', bg: 'rgba(248,113,113,0.05)', border: 'rgba(248,113,113,0.2)',
+    level: 'high', color: '#fb7185', bg: 'rgba(251,113,133,0.05)', border: 'rgba(251,113,133,0.2)',
     title: 'Must type "yes" in full',
     desc: 'Deletions, sudo, chmod — full warning panel. Type the word "yes". No shortcuts, no enter key cheats.',
     examples: ['rm -rf node_modules/', 'sudo chmod 755 ./script', 'chown -R user:group .'],
@@ -52,7 +52,7 @@ export default function Safety() {
               viewport={viewportOnce}
               transition={{ delay: i * 0.12, duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
               whileHover={{ y: -6, boxShadow: `0 20px 48px ${risk.color}18` }}
-              className="rounded-2xl p-7 border text-left cursor-default transition-shadow"
+              className="rounded-2xl p-7 border text-left cursor-default transition-shadow shadow-card"
               style={{ background: risk.bg, borderColor: risk.border }}
             >
               <span
@@ -88,7 +88,7 @@ export default function Safety() {
                   viewport={viewportOnce}
                   transition={{ delay: i * 0.12 + 0.4 }}
                   className="font-mono text-[12px] px-3 py-2 rounded-lg border flex items-center gap-2"
-                  style={{ borderColor: `${risk.color}30`, color: '#6b6b8a' }}
+                  style={{ borderColor: `${risk.color}30`, color: '#8a877f' }}
                 >
                   <span style={{ color: risk.color }}>&rsaquo;</span>
                   {risk.level === 'medium' ? 'run this? [Y/n]' : 'type "yes" to confirm:'}

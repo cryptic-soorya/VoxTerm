@@ -1,12 +1,13 @@
 import { motion } from 'framer-motion'
+import { Mic, FileText, Brain, ShieldCheck, CheckCircle2, LucideIcon } from 'lucide-react'
 import { fadeUp, stagger, viewportOnce } from '../lib/animations'
 
-const STEPS = [
-  { icon: '🎤', label: 'Speak',      desc: 'Plain English' },
-  { icon: '📝', label: 'Transcribe', desc: 'Whisper on-device' },
-  { icon: '🧠', label: 'Translate',  desc: 'Local LLM' },
-  { icon: '🛡️', label: 'Review',     desc: 'You approve it' },
-  { icon: '✅', label: 'Run',        desc: 'In your shell' },
+const STEPS: { icon: LucideIcon; label: string; desc: string }[] = [
+  { icon: Mic,          label: 'Speak',      desc: 'Plain English' },
+  { icon: FileText,     label: 'Transcribe', desc: 'Whisper on-device' },
+  { icon: Brain,        label: 'Translate',  desc: 'Local LLM' },
+  { icon: ShieldCheck,  label: 'Review',     desc: 'You approve it' },
+  { icon: CheckCircle2, label: 'Run',        desc: 'In your shell' },
 ]
 
 export default function HowItWorks() {
@@ -39,15 +40,15 @@ export default function HowItWorks() {
                 className="flex flex-col items-center gap-3 w-36 cursor-default"
               >
                 <motion.div
-                  className="w-16 h-16 rounded-[18px] border border-white/[0.06] bg-surface2 flex items-center justify-center text-[26px]"
+                  className="w-16 h-16 rounded-[18px] border border-white/[0.06] bg-surface2 flex items-center justify-center shadow-card"
                   whileHover={{
-                    borderColor: 'rgba(124,58,237,0.5)',
-                    backgroundColor: 'rgba(124,58,237,0.1)',
-                    boxShadow: '0 8px 32px rgba(124,58,237,0.25)',
+                    borderColor: 'rgba(255,77,46,0.5)',
+                    backgroundColor: 'rgba(255,77,46,0.1)',
+                    boxShadow: '0 8px 32px rgba(255,77,46,0.25)',
                   }}
                   transition={{ duration: 0.2 }}
                 >
-                  {step.icon}
+                  <step.icon size={24} strokeWidth={1.75} className="text-accent-mid" />
                 </motion.div>
                 <div>
                   <div className="text-[13px] font-semibold text-white">{step.label}</div>

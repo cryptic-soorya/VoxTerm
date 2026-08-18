@@ -1,17 +1,18 @@
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion'
 import { MouseEvent } from 'react'
+import { Zap, Lock, ShieldCheck, Undo2, History, Plug, LucideIcon } from 'lucide-react'
 import { fadeUp, stagger, viewportOnce } from '../lib/animations'
 
-const FEATURES = [
-  { icon: '⚡', title: 'Instant offline',       desc: 'Ollama + llama3.2 runs entirely on your Mac. No internet, no API, no latency from the wire. Works on a plane.' },
-  { icon: '🔒', title: 'Private by design',     desc: 'Whisper transcribes locally. The LLM runs locally. Your commands never leave your machine — not even as metadata.' },
-  { icon: '🛡️', title: 'Three-tier safety gate', desc: 'Low runs instantly. Medium asks Y/n. High requires typing "yes" in full. Hardcoded rules the LLM can never override.' },
-  { icon: '↩️', title: 'One-word undo',          desc: 'Say "undo that." The inverse command is computed before anything runs, so reversing is always one confirmation away.' },
-  { icon: '📚', title: 'Command history',        desc: 'Every run is logged locally to SQLite with its risk level and output. Yours to keep, searchable, never uploaded.' },
-  { icon: '🔌', title: 'Plugins + aliases',      desc: 'Drop a .py file into plugins/ for zero-latency shortcuts. Aliases let you save any command — VoxTerm learns your patterns.' },
+const FEATURES: { icon: LucideIcon; title: string; desc: string }[] = [
+  { icon: Zap,         title: 'Instant offline',       desc: 'Ollama + llama3.2 runs entirely on your Mac. No internet, no API, no latency from the wire. Works on a plane.' },
+  { icon: Lock,        title: 'Private by design',     desc: 'Whisper transcribes locally. The LLM runs locally. Your commands never leave your machine — not even as metadata.' },
+  { icon: ShieldCheck, title: 'Three-tier safety gate', desc: 'Low runs instantly. Medium asks Y/n. High requires typing "yes" in full. Hardcoded rules the LLM can never override.' },
+  { icon: Undo2,       title: 'One-word undo',          desc: 'Say "undo that." The inverse command is computed before anything runs, so reversing is always one confirmation away.' },
+  { icon: History,     title: 'Command history',        desc: 'Every run is logged locally to SQLite with its risk level and output. Yours to keep, searchable, never uploaded.' },
+  { icon: Plug,        title: 'Plugins + aliases',      desc: 'Drop a .py file into plugins/ for zero-latency shortcuts. Aliases let you save any command — VoxTerm learns your patterns.' },
 ]
 
-function FeatureCard({ icon, title, desc, delay }: { icon: string; title: string; desc: string; delay: number }) {
+function FeatureCard({ icon: Icon, title, desc, delay }: { icon: LucideIcon; title: string; desc: string; delay: number }) {
   const x = useMotionValue(0)
   const y = useMotionValue(0)
   const rotateX = useSpring(useTransform(y, [-60, 60], [6, -6]), { stiffness: 300, damping: 30 })
@@ -33,16 +34,16 @@ function FeatureCard({ icon, title, desc, delay }: { icon: string; title: string
       style={{ rotateX, rotateY, transformPerspective: 800, transformStyle: 'preserve-3d' }}
       onMouseMove={onMouseMove}
       onMouseLeave={onMouseLeave}
-      whileHover={{ backgroundColor: 'rgba(20,20,42,1)' }}
+      whileHover={{ backgroundColor: 'rgba(22,20,18,1)' }}
       className="bg-surface2 p-8 cursor-default transition-colors"
     >
-      <motion.span
-        className="text-[28px] block mb-5"
-        whileHover={{ scale: 1.15, rotate: [-5, 5, 0] }}
-        transition={{ duration: 0.35 }}
+      <motion.div
+        className="w-11 h-11 rounded-xl flex items-center justify-center mb-5 border border-accent/20 bg-accent/10 text-accent-mid shadow-card"
+        whileHover={{ scale: 1.1, borderColor: 'rgba(255,77,46,0.5)' }}
+        transition={{ duration: 0.3 }}
       >
-        {icon}
-      </motion.span>
+        <Icon size={19} strokeWidth={2} />
+      </motion.div>
       <h3 className="text-[17px] font-bold tracking-tight mb-2.5">{title}</h3>
       <p className="text-[13.5px] text-muted leading-relaxed">{desc}</p>
     </motion.div>
@@ -63,7 +64,7 @@ export default function Features() {
           </motion.h2>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-[2px] rounded-2xl overflow-hidden border border-white/[0.05]">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-[2px] rounded-2xl overflow-hidden border border-white/[0.05] shadow-elevated">
           {FEATURES.map((f, i) => (
             <FeatureCard key={i} {...f} delay={i * 0.07} />
           ))}

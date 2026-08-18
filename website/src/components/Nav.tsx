@@ -12,9 +12,10 @@ export default function Nav() {
     <motion.nav
       className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 h-14"
       animate={{
-        backgroundColor: scrolled ? 'rgba(7,7,15,0.8)' : 'rgba(7,7,15,0)',
+        backgroundColor: scrolled ? 'rgba(6,6,5,0.8)' : 'rgba(6,6,5,0)',
         borderBottomColor: scrolled ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0)',
         backdropFilter: scrolled ? 'blur(20px)' : 'blur(0px)',
+        boxShadow: scrolled ? '0 12px 30px -14px rgba(0,0,0,0.6)' : '0 0 0 rgba(0,0,0,0)',
       }}
       style={{ borderBottom: '1px solid transparent' }}
       transition={{ duration: 0.3 }}
@@ -53,7 +54,7 @@ export default function Nav() {
         <motion.a
           href="#download"
           className="flex items-center gap-2 px-4 py-2 bg-accent text-white text-[13px] font-semibold rounded-lg"
-          whileHover={{ scale: 1.03, backgroundColor: '#9d5cff' }}
+          whileHover={{ scale: 1.03, backgroundColor: '#ff8a5c' }}
           whileTap={{ scale: 0.97 }}
           transition={{ type: 'spring', stiffness: 400, damping: 25 }}
         >

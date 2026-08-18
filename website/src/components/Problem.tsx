@@ -29,7 +29,7 @@ export default function Problem() {
   const words3 = ['or', 'you', 'just', 'speak', 'it.']
 
   return (
-    <section className="relative py-32 px-6" style={{ background: 'linear-gradient(180deg, #07070f 0%, #0d0d1a 50%, #07070f 100%)' }}>
+    <section className="relative py-32 px-6" style={{ background: 'linear-gradient(180deg, #060605 0%, #0d0c0b 50%, #060605 100%)' }}>
       <div className="max-w-[1040px] mx-auto text-center">
 
         <motion.div

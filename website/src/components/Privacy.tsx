@@ -23,7 +23,7 @@ const POINTS = [
 
 export default function Privacy() {
   return (
-    <section id="privacy" className="py-32 px-6" style={{ background: 'linear-gradient(135deg, #07071a, #0d0820)' }}>
+    <section id="privacy" className="py-32 px-6" style={{ background: 'linear-gradient(135deg, #060605, #161412)' }}>
       <div className="max-w-[1040px] mx-auto">
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
@@ -69,8 +69,8 @@ export default function Privacy() {
             initial="hidden"
             whileInView="visible"
             viewport={viewportOnce}
-            className="relative rounded-2xl border border-white/[0.06] p-8 overflow-hidden"
-            style={{ background: 'rgba(18,18,31,0.8)' }}
+            className="relative rounded-2xl border border-white/[0.06] p-8 overflow-hidden shadow-elevated"
+            style={{ background: 'rgba(22,20,18,0.8)' }}
           >
             {/* Corner glow */}
             <div className="absolute -top-16 -right-16 w-48 h-48 bg-gradient-radial from-accent/15 to-transparent pointer-events-none" />
@@ -83,12 +83,12 @@ export default function Privacy() {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={viewportOnce}
                   transition={{ delay: i * 0.1, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                  whileHover={{ borderColor: 'rgba(52,211,153,0.4)', x: 2 }}
+                  whileHover={{ borderColor: 'rgba(45,212,167,0.4)', x: 2 }}
                   className="flex items-center gap-3 px-4 py-3.5 rounded-xl border border-white/[0.06] bg-white/[0.02] transition-colors"
                 >
                   <motion.div
                     className="w-2 h-2 rounded-full bg-emerald flex-shrink-0"
-                    animate={{ boxShadow: ['0 0 0px #34d399', '0 0 8px #34d399', '0 0 0px #34d399'] }}
+                    animate={{ boxShadow: ['0 0 0px #2dd4a7', '0 0 8px #2dd4a7', '0 0 0px #2dd4a7'] }}
                     transition={{ duration: 2, repeat: Infinity, delay: i * 0.5 }}
                   />
                   <span className="text-[13px] font-medium flex-1">{item.label}</span>

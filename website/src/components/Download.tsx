@@ -14,7 +14,7 @@ const TABS = [
       { type: 'cmd',     text: 'ollama pull llama3.2:3b' },
       { type: 'blank' },
       { type: 'comment', text: '# 2. Clone and install' },
-      { type: 'cmd',     text: 'git clone https://github.com/yourusername/voxterm' },
+      { type: 'cmd',     text: 'git clone https://github.com/cryptic-soorya/VoxTerm' },
       { type: 'cmd',     text: 'cd voxterm && brew install portaudio' },
       { type: 'cmd',     text: 'python3 -m venv venv && source venv/bin/activate' },
       { type: 'cmd',     text: 'pip install -r requirements.txt' },
@@ -34,7 +34,7 @@ const TABS = [
       { type: 'comment', text: '# 1. Get a free key at aistudio.google.com' },
       { type: 'blank' },
       { type: 'comment', text: '# 2. Clone and install' },
-      { type: 'cmd',     text: 'git clone https://github.com/yourusername/voxterm' },
+      { type: 'cmd',     text: 'git clone https://github.com/cryptic-soorya/VoxTerm' },
       { type: 'cmd',     text: 'cd voxterm && brew install portaudio' },
       { type: 'cmd',     text: 'python3 -m venv venv && source venv/bin/activate' },
       { type: 'cmd',     text: 'pip install -r requirements.txt' },
@@ -53,7 +53,7 @@ export default function Download() {
   const tab = TABS.find(t => t.id === active)!
 
   return (
-    <section id="download" className="py-32 px-6 text-center" style={{ background: 'linear-gradient(180deg, #07070f 0%, #0b0918 100%)' }}>
+    <section id="download" className="py-32 px-6 text-center" style={{ background: 'linear-gradient(180deg, #060605 0%, #161412 100%)' }}>
       <div className="max-w-[1040px] mx-auto">
 
         <motion.div variants={stagger(0.08)} initial="hidden" whileInView="visible" viewport={viewportOnce} className="mb-14">
@@ -73,14 +73,14 @@ export default function Download() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={viewportOnce}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          className="max-w-[660px] mx-auto rounded-2xl overflow-hidden border border-white/[0.06]"
-          style={{ background: 'rgba(18,18,31,0.9)' }}
+          className="max-w-[660px] mx-auto rounded-2xl overflow-hidden border border-white/[0.06] shadow-elevated"
+          style={{ background: 'rgba(22,20,18,0.9)' }}
         >
           {/* Top */}
           <div className="px-10 pt-10 pb-8 text-center">
             <motion.div
               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald/25 bg-emerald/8 text-emerald text-[11px] font-bold mb-6"
-              animate={{ borderColor: ['rgba(52,211,153,0.25)', 'rgba(52,211,153,0.5)', 'rgba(52,211,153,0.25)'] }}
+              animate={{ borderColor: ['rgba(45,212,167,0.25)', 'rgba(45,212,167,0.5)', 'rgba(45,212,167,0.25)'] }}
               transition={{ duration: 2.5, repeat: Infinity }}
             >
               <motion.span
@@ -97,7 +97,7 @@ export default function Download() {
             <motion.a
               href="https://github.com/cryptic-soorya/VoxTerm/releases/latest/download/voxterm-1.0.0.dmg"
               className="inline-flex items-center gap-2.5 px-8 py-3.5 bg-accent text-white text-[15px] font-bold rounded-xl mb-3"
-              whileHover={{ scale: 1.04, backgroundColor: '#9d5cff', boxShadow: '0 12px 48px rgba(124,58,237,0.45)' }}
+              whileHover={{ scale: 1.04, backgroundColor: '#ff8a5c', boxShadow: '0 12px 48px rgba(255,77,46,0.4)' }}
               whileTap={{ scale: 0.97 }}
               transition={{ type: 'spring', stiffness: 400, damping: 22 }}
             >
@@ -114,7 +114,7 @@ export default function Download() {
                 key={t.id}
                 onClick={() => setActive(t.id)}
                 className="flex-1 py-4 text-[12.5px] font-semibold transition-colors relative"
-                style={{ color: active === t.id ? '#a78bfa' : '#6b6b8a' }}
+                style={{ color: active === t.id ? '#ff8a5c' : '#8a877f' }}
               >
                 {t.label}
                 {active === t.id && (

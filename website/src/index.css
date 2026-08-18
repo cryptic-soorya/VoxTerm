@@ -7,36 +7,67 @@
 
   html {
     scroll-behavior: smooth;
-    background: #07070f;
+    background: #060605;
   }
 
   body {
     font-family: 'Inter', system-ui, sans-serif;
-    background: #07070f;
-    color: #f0f0f8;
+    background: #060605;
+    color: #f5f3ef;
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Subtle film grain — keeps large flat dark areas from feeling flat/AI-generated */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0.045;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
   ::-webkit-scrollbar { width: 5px; }
-  ::-webkit-scrollbar-track { background: #07070f; }
-  ::-webkit-scrollbar-thumb { background: #3a3a5c; border-radius: 3px; }
-  ::selection { background: #7c3aed; color: #fff; }
+  ::-webkit-scrollbar-track { background: #060605; }
+  ::-webkit-scrollbar-thumb { background: #322f2a; border-radius: 3px; }
+  ::selection { background: #ff4d2e; color: #060605; }
 }
 
 @layer utilities {
   .text-gradient {
-    background: linear-gradient(135deg, #a78bfa 0%, #67e8f9 100%);
+    background: linear-gradient(100deg, #ff8a5c 0%, #ff4d2e 45%, #5eb1ff 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  .glow-accent { box-shadow: 0 0 40px rgba(124, 58, 237, 0.35); }
-  .glow-sm     { box-shadow: 0 0 20px rgba(124, 58, 237, 0.2); }
-  .border-glow { border-color: rgba(124, 58, 237, 0.4); }
+  .glow-accent { box-shadow: 0 0 48px rgba(255, 77, 46, 0.35); }
+  .glow-sm     { box-shadow: 0 0 22px rgba(255, 77, 46, 0.2); }
+  .border-glow { border-color: rgba(255, 77, 46, 0.4); }
   .glass {
-    background: rgba(13, 13, 26, 0.7);
+    background: rgba(13, 12, 11, 0.72);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
+  }
+
+  /* Depth shadows — layered so elements feel lifted off the black, not flat */
+  .shadow-elevated {
+    box-shadow:
+      0 1px 0 0 rgba(255, 255, 255, 0.04) inset,
+      0 20px 50px -12px rgba(0, 0, 0, 0.6),
+      0 8px 20px -8px rgba(0, 0, 0, 0.5);
+  }
+  .shadow-card {
+    box-shadow:
+      0 1px 0 0 rgba(255, 255, 255, 0.03) inset,
+      0 12px 30px -10px rgba(0, 0, 0, 0.55);
+  }
+  .shadow-glow-accent {
+    box-shadow:
+      0 20px 60px -16px rgba(0, 0, 0, 0.65),
+      0 0 60px -10px rgba(255, 77, 46, 0.22);
   }
 }
