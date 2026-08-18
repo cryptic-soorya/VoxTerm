@@ -95,7 +95,7 @@ export default function Download() {
             <p className="text-[14px] text-muted mb-7">macOS 12+ · Apple Silicon &amp; Intel · Python 3.11+</p>
 
             <motion.a
-              href="https://github.com/yourusername/voxterm/releases/latest"
+              href="https://github.com/cryptic-soorya/VoxTerm/releases/latest/download/voxterm-1.0.0.dmg"
               className="inline-flex items-center gap-2.5 px-8 py-3.5 bg-accent text-white text-[15px] font-bold rounded-xl mb-3"
               whileHover={{ scale: 1.04, backgroundColor: '#9d5cff', boxShadow: '0 12px 48px rgba(124,58,237,0.45)' }}
               whileTap={{ scale: 0.97 }}
