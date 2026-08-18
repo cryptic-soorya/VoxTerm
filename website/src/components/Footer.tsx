@@ -6,6 +6,7 @@ const LINKS = [
   { label: 'Releases',  href: 'https://github.com/cryptic-soorya/VoxTerm/releases' },
   { label: 'Issues',    href: 'https://github.com/cryptic-soorya/VoxTerm/issues' },
   { label: 'MIT Licence', href: 'https://github.com/cryptic-soorya/VoxTerm/blob/main/LICENSE' },
+  { label: 'me@soorya.uk', href: 'mailto:me@soorya.uk' },
 ]
 
 export default function Footer() {
@@ -17,7 +18,7 @@ export default function Footer() {
           whileHover={{ opacity: 0.7 }}
         >
           Vox<span className="text-accent-mid">Term</span>
-          <span className="text-muted font-normal ml-2">by soorya</span>
+          <span className="text-muted font-normal ml-2">by Soorya</span>
         </motion.div>
 
         <div className="flex items-center gap-6 flex-wrap">
