@@ -6,9 +6,11 @@ Whisper model weights as OpenAI's original but 2–4× faster on CPU.
 On Apple Silicon (M1/M2/M3/M4) the base model transcribes a 5-second
 clip in roughly 0.3–0.5 seconds.
 
-The model is loaded once at import time. This takes ~1 second the first
-run (it downloads the weights if missing), but each subsequent call is
-fast because the model stays in memory.
+The model is loaded lazily on first use, not at import time — commands
+that never transcribe (history, undo, alias) skip the load entirely.
+The first transcribe() call takes ~1 second (it downloads the weights
+if missing); every call after that is fast because the model stays in
+memory for the life of the process.
 
 Model size trade-offs:
   tiny  : ~39M params, ~0.1s/clip, lower accuracy
@@ -40,18 +42,28 @@ DEVELOPER_VOCAB_PROMPT = (
     "VoxTerm voxterm"
 )
 
-# compute_type="int8" uses 8-bit integer weights — 2× faster, ~half the RAM,
-# negligible quality difference for short voice commands.
-# device="cpu" is correct for Apple Silicon until CTranslate2 adds Metal support.
-try:
-    _model = WhisperModel(WHISPER_MODEL_SIZE, device="cpu", compute_type="int8")
-except Exception as exc:
-    # Deferred error: let the import succeed so other modules can load,
-    # but raise clearly on first use.
-    _model = None
-    _model_load_error = exc
-else:
-    _model_load_error = None
+_model: WhisperModel | None = None
+_model_load_error: Exception | None = None
+_model_load_attempted = False
+
+
+def _get_model() -> WhisperModel | None:
+    """
+    Load and cache the Whisper model on first call.
+
+    compute_type="int8" uses 8-bit integer weights — 2× faster, ~half the RAM,
+    negligible quality difference for short voice commands.
+    device="cpu" is correct for Apple Silicon until CTranslate2 adds Metal support.
+    """
+    global _model, _model_load_error, _model_load_attempted
+    if _model_load_attempted:
+        return _model
+    _model_load_attempted = True
+    try:
+        _model = WhisperModel(WHISPER_MODEL_SIZE, device="cpu", compute_type="int8")
+    except Exception as exc:
+        _model_load_error = exc
+    return _model
 
 
 def transcribe(wav_path: str) -> str:
@@ -70,7 +82,8 @@ def transcribe(wav_path: str) -> str:
         RuntimeError: if the model failed to load at import time.
         FileNotFoundError: if wav_path does not exist.
     """
-    if _model is None:
+    model = _get_model()
+    if model is None:
         raise RuntimeError(
             f"faster-whisper model failed to load: {_model_load_error}\n"
             "Run: pip install faster-whisper"
@@ -86,7 +99,7 @@ def transcribe(wav_path: str) -> str:
         #   — important for recordings that start/end with silence padding.
         # condition_on_previous_text=False prevents compounding errors across
         #   segments when multiple segments are returned.
-        segments, _info = _model.transcribe(
+        segments, _info = model.transcribe(
             wav_path,
             beam_size=5,
             language="en",
@@ -114,7 +127,8 @@ def transcribe_and_keep(wav_path: str) -> str:
     Same as transcribe() but does NOT delete the .wav file afterwards.
     Useful during debugging when you want to replay the audio.
     """
-    if _model is None:
+    model = _get_model()
+    if model is None:
         raise RuntimeError(
             f"faster-whisper model failed to load: {_model_load_error}"
         ) from _model_load_error
@@ -122,7 +136,7 @@ def transcribe_and_keep(wav_path: str) -> str:
     if not os.path.exists(wav_path):
         raise FileNotFoundError(f"WAV file not found: {wav_path}")
 
-    segments, _info = _model.transcribe(
+    segments, _info = model.transcribe(
         wav_path,
         beam_size=5,
         language="en",

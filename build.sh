@@ -20,7 +20,7 @@ set -euo pipefail
 # ---------------------------------------------------------------------------
 # Config — bump VERSION to match voxterm.spec before each release
 # ---------------------------------------------------------------------------
-VERSION="1.0.0"
+VERSION="1.0.1"
 APP_NAME="voxterm"
 DMG_NAME="${APP_NAME}-${VERSION}.dmg"
 DIST_DIR="dist"

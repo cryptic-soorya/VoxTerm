@@ -40,6 +40,20 @@ _OLLAMA_BASE = "http://localhost:11434"
 _OLLAMA_GENERATE_URL = f"{_OLLAMA_BASE}/api/generate"
 _OLLAMA_TIMEOUT = 60  # seconds — local inference, should be well within this
 
+# How many recent commands to inject as context, and how much of each field
+# to keep. Smaller = less prefill for the local model = faster time-to-command.
+_HISTORY_CONTEXT_SIZE = 3
+_HISTORY_FIELD_TRUNCATE = 120
+
+# Keep the model resident in Ollama between commands so voice commands spaced
+# a few minutes apart don't each pay a fresh model-load cost (Ollama's default
+# unload timeout is 5 minutes).
+_OLLAMA_KEEP_ALIVE = "30m"
+
+# Caps generation length as a speed safety net — the schema-constrained JSON
+# response should never need more than this many tokens.
+_OLLAMA_OPTIONS = {"num_predict": 220, "temperature": 0}
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -186,17 +200,18 @@ def build_user_message(transcript: str, context: str) -> str:
     can handle references like "do that again" or "same but for ~/Desktop".
     """
     from .history import recent  # local import to avoid circular dependency at module load
-    rows = recent(7)
+    rows = recent(_HISTORY_CONTEXT_SIZE)
 
     if rows:
         # Show oldest first so the conversation reads naturally.
         # Truncate each field — history comes from user speech and LLM output,
-        # not external files, but we truncate as a defence-in-depth measure.
+        # not external files, but we truncate as a defence-in-depth measure,
+        # and to keep the prompt short (shorter prompt = faster local prefill).
         history_lines = []
         for row in reversed(rows):
             status = "succeeded" if row[4] else "failed"
-            transcript_snip = str(row[1] or "")[:200]
-            command_snip    = str(row[2] or "")[:200]
+            transcript_snip = str(row[1] or "")[:_HISTORY_FIELD_TRUNCATE]
+            command_snip    = str(row[2] or "")[:_HISTORY_FIELD_TRUNCATE]
             history_lines.append(f"  User said: '{transcript_snip}'")
             history_lines.append(f"  Ran: {command_snip} ({status})\n")
         history_block = "Commands you ran recently (oldest first):\n" + "\n".join(history_lines)
@@ -263,6 +278,8 @@ def translate_ollama(transcript: str, context: str) -> dict:
         "prompt": full_prompt,
         "stream": False,
         "format": _RESPONSE_SCHEMA,
+        "keep_alive": _OLLAMA_KEEP_ALIVE,
+        "options": _OLLAMA_OPTIONS,
     }
     data, err = _ollama_generate(payload)
     if err:
@@ -585,10 +602,14 @@ def translate(
         return translate_gemini(transcript, context)
 
     # Auto-select: prefer Ollama (privacy), fall back to Gemini.
-    if _is_ollama_running():
-        return translate_ollama(transcript, context)
-    else:
+    # Skip the separate "is it running" ping and go straight to the generate
+    # call — saves a full HTTP round-trip on every command in the common case
+    # where Ollama is already up. A connection failure here means it's not
+    # running, so we fall back to Gemini exactly as before.
+    result = translate_ollama(transcript, context)
+    if result.get("error", "").startswith("Ollama is not running"):
         return translate_gemini(transcript, context)
+    return result
 
 
 # ---------------------------------------------------------------------------

@@ -26,7 +26,7 @@ fw_datas, fw_binaries, fw_hiddenimports = collect_all('faster_whisper')
 # ---------------------------------------------------------------------------
 # Version — bump this before each release
 # ---------------------------------------------------------------------------
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 BUNDLE_ID = "com.voxterm.app"
 
 # ---------------------------------------------------------------------------

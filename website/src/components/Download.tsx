@@ -95,7 +95,7 @@ export default function Download() {
             <p className="text-[14px] text-muted mb-7">macOS 12+ · Apple Silicon &amp; Intel · Python 3.11+</p>
 
             <motion.a
-              href="https://github.com/cryptic-soorya/VoxTerm/releases/latest/download/voxterm-1.0.0.dmg"
+              href="https://github.com/cryptic-soorya/VoxTerm/releases/latest/download/voxterm-1.0.1.dmg"
               className="inline-flex items-center gap-2.5 px-8 py-3.5 bg-accent text-white text-[15px] font-bold rounded-xl mb-3"
               whileHover={{ scale: 1.04, backgroundColor: '#ff8a5c', boxShadow: '0 12px 48px rgba(255,77,46,0.4)' }}
               whileTap={{ scale: 0.97 }}
@@ -104,7 +104,7 @@ export default function Download() {
               <DownloadIcon size={16} />
               Download VoxTerm
             </motion.a>
-            <p className="text-[12px] text-muted mb-2">v1.0.0 · Requires Ollama or free Gemini key</p>
+            <p className="text-[12px] text-muted mb-2">v1.0.1 · Requires Ollama or free Gemini key</p>
             <p className="text-[12px] text-muted2 max-w-[420px] mx-auto leading-relaxed">
               macOS will say the app "cannot be opened" — it's unsigned, not malware.
               Right-click the app → Open, then click Open again. Or run{' '}
